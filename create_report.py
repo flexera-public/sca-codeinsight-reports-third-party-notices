@@ -109,7 +109,7 @@ def main():
         reportData["reportTimeStamp"] = datetime.strptime(fileNameTimeStamp, "%Y%m%d-%H%M%S").strftime("%B %d, %Y at %H:%M:%S")
         reportData["reportFileNameBase"] = reportFileNameBase
 
-        #reports = report_errors.create_error_report(reportData)
+        reports = report_artifacts.create_error_artifacts(reportData)
         print("    *** ERROR  ***  Error found validating report options")
     else:
         # No error with provided optoins so collect project/inventory data
@@ -131,7 +131,7 @@ def main():
 
         # Where there any issues encountered while collecting the data?
         if "errorMsg" in reportData.keys():
-            #reports = report_errors.create_error_report(reportData)
+            reports = report_artifacts.create_error_artifacts(reportData)
             print("    Error report artifacts have been created")
         else:
             reports = report_artifacts.create_report_artifacts(reportData)

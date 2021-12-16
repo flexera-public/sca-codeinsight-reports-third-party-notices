@@ -10,6 +10,7 @@ File : report_artifacts.py
 import logging
 
 import report_artifacts_html
+import report_artifacts_error
 
 
 logger = logging.getLogger(__name__)
@@ -30,3 +31,18 @@ def create_report_artifacts(reportData):
     
     return reports 
 
+#--------------------------------------------------------------------------------#
+def create_error_artifacts(reportData):
+    logger.info("Entering create_error_report")
+
+    # Dict to hold the complete list of reports
+    reports = {}
+
+    htmlFile = report_artifacts_error.generate_error_report(reportData)
+    
+    reports["viewable"] = htmlFile
+    reports["allFormats"] = [htmlFile]
+
+    logger.info("Exiting create_report_artifacts")
+    
+    return reports 
