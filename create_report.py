@@ -125,8 +125,11 @@ def main():
         else:
             reportFileNameBase = projectNameForFile + "-with-children-" + str(projectID) + "-" + reportName.replace(" ", "_") + "-" + fileNameTimeStamp
 
+        reportFileNameBase = "XYZ testing"
+
         reportData["projectNameForFile"] = projectNameForFile
         reportData["reportTimeStamp"] = datetime.strptime(fileNameTimeStamp, "%Y%m%d-%H%M%S").strftime("%B %d, %Y at %H:%M:%S")
+        reportData["reportDate"] = datetime.strptime(fileNameTimeStamp, "%Y%m%d-%H%M%S").strftime("%B %Y")
         reportData["reportFileNameBase"] = reportFileNameBase
 
         # Where there any issues encountered while collecting the data?
@@ -156,17 +159,17 @@ def verifyOptions(reportOptions):
     updateNoticesText = reportOptions["updateNoticesText"]
 
     if includeChildProjects.lower() in trueOptions:
-        reportOptions["includeChildProjects"] = "true"
+        reportOptions["includeChildProjects"] = True
     elif includeChildProjects.lower() in falseOptions:
-        reportOptions["includeChildProjects"] = "false"
+        reportOptions["includeChildProjects"] = False
     else:
         reportOptions["errorMsg"].append("Invalid option for including child projects: <b>%s</b>.  Valid options are <b>True/False</b>" %includeChildProjects)
 
 
     if updateNoticesText.lower() in trueOptions:
-        reportOptions["updateNoticesText"] = "true"
+        reportOptions["updateNoticesText"] = True
     elif updateNoticesText.lower() in falseOptions:
-        reportOptions["updateNoticesText"] = "false"
+        reportOptions["updateNoticesText"] = False
     else:
         reportOptions["errorMsg"].append("Invalid option for updating inventory notices text: <b>%s</b>.  Valid options are <b>True/False</b>" %updateNoticesText)
 
