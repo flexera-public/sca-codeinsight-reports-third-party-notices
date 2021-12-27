@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 #------------------------------------------------------------------#
 def generate_html_report(reportData):
-    logger.info("Entering generate_html_report")
+    logger.info("    Entering generate_html_report")
 
     reportName = reportData["reportName"]
     projectName = reportData["projectName"]
@@ -130,11 +130,11 @@ def generate_html_report(reportData):
     html_ptr.write("<br>\n")
     html_ptr.write("<div class=\"container-fluid\">\n")
 
-    for noticeID in commonNotices:
-        selectedLicenseName = commonNotices[noticeID]["selectedLicenseName"]
-        selectedLicenseSPDXIdentifier = commonNotices[noticeID]["selectedLicenseSPDXIdentifier"]
+    for licenseID in commonNotices:
+        selectedLicenseName = commonNotices[licenseID]["commonLicenseName"]
+        selectedLicenseSPDXIdentifier = commonNotices[licenseID]["spdxIdentifier"]
 
-        html_ptr.write("<a href='#%s'>%s  (%s)</a>\n" %(selectedLicenseSPDXIdentifier, selectedLicenseName, selectedLicenseSPDXIdentifier))
+        html_ptr.write("<a href='#%s'>%s  (%s)</a>\n" %(selectedLicenseSPDXIdentifier.replace(" ", ""), selectedLicenseName, selectedLicenseSPDXIdentifier))
         html_ptr.write("<br>\n")
 
 
@@ -164,10 +164,10 @@ def generate_html_report(reportData):
     html_ptr.write("<p>") 
 
     for inventoryItemID in inventoryItems:
-        logger.info("Processing inventory item: %s" %inventoryItemID)
-
         componentName = inventoryItems[inventoryItemID]["componentName"]
         componentVersionName = inventoryItems[inventoryItemID]["componentVersionName"]
+
+        logger.info("        Processing inventory item: %s - %s  (%s)" %(componentName, componentVersionName, inventoryItemID))
         selectedLicenseSPDXIdentifier = inventoryItems[inventoryItemID]["selectedLicenseSPDXIdentifier"]
         selectedLicenseName = inventoryItems[inventoryItemID]["selectedLicenseName"]
         noticesText = inventoryItems[inventoryItemID]["noticesText"]
@@ -180,8 +180,9 @@ def generate_html_report(reportData):
         html_ptr.write("<p>\n")
         html_ptr.write("<p>\n")
 
-        if "commonLicenseID" in inventoryItems[inventoryItemID]:
-            html_ptr.write("For the full text of the %s license, see <a href='#%s'>%s  (%s)</a>\n" %(selectedLicenseSPDXIdentifier, selectedLicenseSPDXIdentifier,selectedLicenseName, selectedLicenseSPDXIdentifier))
+        if inventoryItems[inventoryItemID]["isCommonLicense"]:
+            logger.info("            Using common license text for %s (%s)" %(selectedLicenseName, selectedLicenseSPDXIdentifier))
+            html_ptr.write("For the full text of the %s license, see <a href='#%s'>%s  (%s)</a>\n" %(selectedLicenseSPDXIdentifier, selectedLicenseSPDXIdentifier.replace(" ", "") ,selectedLicenseName, selectedLicenseSPDXIdentifier))
         else:
             html_ptr.write("<pre>%s</pre><br>\n" %noticesText)    
 
@@ -198,14 +199,14 @@ def generate_html_report(reportData):
 
     # TODO Cycle through common licenses
     
-    for noticeID in commonNotices:
+    for licenseID in commonNotices:
 
-        noticesText = commonNotices[noticeID]["noticesText"]
-        selectedLicenseName = commonNotices[noticeID]["selectedLicenseName"]
-        selectedLicenseSPDXIdentifier = commonNotices[noticeID]["selectedLicenseSPDXIdentifier"]
-        selectedLicenseUrl = commonNotices[noticeID]["selectedLicenseUrl"]
+        noticesText = commonNotices[licenseID]["reportNoticeText"]
+        selectedLicenseName = commonNotices[licenseID]["commonLicenseName"]
+        selectedLicenseSPDXIdentifier = commonNotices[licenseID]["spdxIdentifier"]
+        selectedLicenseUrl = commonNotices[licenseID]["commonLicenseURL"]
 
-        html_ptr.write("<H3 id=%s>%s  (%s) </H3>\n" %(selectedLicenseSPDXIdentifier, selectedLicenseName, selectedLicenseSPDXIdentifier) )
+        html_ptr.write("<H3 id=%s>%s  (%s) </H3>\n" %(selectedLicenseSPDXIdentifier.replace(" ", "") , selectedLicenseName, selectedLicenseSPDXIdentifier) )
         html_ptr.write("<a href='%s' >%s</a>\n" %(selectedLicenseUrl, selectedLicenseUrl))
         html_ptr.write("<div style='white-space: pre-wrap; width: 65%;'>\n")   
         html_ptr.write("%s\n" %noticesText)
