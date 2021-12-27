@@ -15,13 +15,12 @@ from datetime import datetime # TODO Remove after temp inventory testing
 import CodeInsight_RESTAPIs.project.get_child_projects
 import CodeInsight_RESTAPIs.project.get_project_inventory
 import CodeInsight_RESTAPIs.license.license_lookup
-import report_license_text
-
+import API_license_text
+import common_licenses
 
 logger = logging.getLogger(__name__)
 
-uniqueLicenseIdentifiers = []
-uniqueLicenseIdentifiers.append("MIT")
+
 
 #-------------------------------------------------------------------#
 def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOptions):
@@ -29,12 +28,11 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
     # Parse report options
     includeChildProjects = reportOptions["includeChildProjects"]  # True/False
-    updateNoticesText = reportOptions["updateNoticesText"]  # True/False
+    overrideExistingNoticesText = reportOptions["overrideExistingNoticesText"]  # True/False
 
     projectList = [] # List to hold parent/child details for report
     inventoryData = {}  # Create a dictionary containing the inventory data using inventoryID as keys
-    stockLicenseDetails = {}
-    notices = {}
+    componentVersionLicenses = {}
     commonNotices = {}
 
     # Get the list of parent/child projects start at the base project
@@ -72,118 +70,140 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
         
         # Cycle through the inventory to get the required data
         for inventoryItem in projectDetails["inventoryItems"]:
-
             inventoryID = inventoryItem["id"]
             componentName = inventoryItem["componentName"]
             componentVersionName = inventoryItem["componentVersionName"]
 
-            logger.debug("        Processing license for %s - %s" %(componentName, componentVersionName))
+            logger.debug("        Processing license for %s - %s  (%s)" %(componentName, componentVersionName, inventoryID))
             
             componentVersionId = inventoryItem["componentVersionId"]
             selectedLicenseSPDXIdentifier = inventoryItem["selectedLicenseSPDXIdentifier"]
-            selectedLicenseId = inventoryItem["selectedLicenseId"]
+            selectedLicenseId = str(inventoryItem["selectedLicenseId"])
             url = inventoryItem["url"]
             componentUrl = inventoryItem["componentUrl"]
             noticesText = inventoryItem["noticesText"]
-            asFoundLicenseText = inventoryItem["asFoundLicenseText"]
             selectedLicenseName = inventoryItem["selectedLicenseName"]
             selectedLicenseUrl = inventoryItem["selectedLicenseUrl"]
 
-
             # TODO Which URL should be used
-       
-            # Do we need to update the notices?
-            if updateNoticesText:
-                print("Update notices for inventory item %s" %inventoryID)
-                print("Get information for component version ID  %s" %componentVersionId)
+            if componentVersionId != "N/A":
+                componentVersionLicenses[componentVersionId] = selectedLicenseId
 
-                #TODO only update if it is a unique licenes?  Compare to other text in case there is a copy right?
-  
-                #noticesText = report_license_text.get_license_text(componentVersionId)
+            # Collect the standard license text details if required
+            if selectedLicenseId in common_licenses.commonLicenses.keys():
+                isCommonLicense = True
 
-            # What license text should we use?
-            if noticesText != "N/A":
-                logger.info("            Using notices text field")
-                reportNoticeText = noticesText
-            elif asFoundLicenseText != "N/A" :   # As found license text is a tuple for some reason?
-                print("asFoundLicenseText is %s" %asFoundLicenseText)
-                logger.info("            Using as found license text field")
-                reportNoticeText = asFoundLicenseText
-            else:
-                logger.info("            Using as stock license text details")
+                if selectedLicenseId in commonNotices:
+                    logger.info("            License details already available for %s" %commonNotices[selectedLicenseId]["commonLicenseName"])
 
-                # Get the stock license text
-                if selectedLicenseId in stockLicenseDetails:
-                    logger.debug("        %s already exists in stockLicenseDetails" %selectedLicenseId)
-                    reportNoticeText = stockLicenseDetails[selectedLicenseId]["reportNoticeText"] 
                 else:
-                    licenseDetails = CodeInsight_RESTAPIs.license.license_lookup.get_license_details(baseURL, selectedLicenseId, authToken)
-                    
-                    stockLicenseDetails[selectedLicenseId] = {}
-                    stockLicenseDetails[selectedLicenseId]["commonLicenseName"] = licenseDetails["name"]
-                    stockLicenseDetails[selectedLicenseId]["commonLicenseURL"] = licenseDetails["url"]
-                    stockLicenseDetails[selectedLicenseId]["spdxIdentifier"] = licenseDetails["spdxIdentifier"]
-                    stockLicenseDetails[selectedLicenseId]["reportNoticeText"] = licenseDetails["text"]
-                    logger.debug("        Adding %s to stock license details" %licenseDetails["name"])
+                    commonNotices[selectedLicenseId] = gather_common_license_details(baseURL, selectedLicenseId, authToken)
+            elif selectedLicenseId == "-1":
+                logger.warning("            The license was not selected for this inventory item")
+                isCommonLicense = False
 
-                    reportNoticeText =  licenseDetails["text"]
+            else:
+                # This is not a license where the templatize text will be used
+                isCommonLicense = False
 
-            # TODO Do we have anything?  Should we used as found?
+
             # Store the data for the inventory item for reporting
             inventoryData[inventoryID] = {
                 "componentName" : componentName,
                 "componentVersionName" : componentVersionName,
+                "componentVersionId" : componentVersionId,
                 "selectedLicenseName": selectedLicenseName,
                 "selectedLicenseSPDXIdentifier" : selectedLicenseSPDXIdentifier,
-                "selectedLicenseID" : selectedLicenseId,
+                "selectedLicenseId" : selectedLicenseId,
                 "selectedLicenseUrl" : selectedLicenseUrl,
+                "isCommonLicense" : isCommonLicense,
                 "componentUrl" : componentUrl,
-                "noticesText" : reportNoticeText
+                "noticesText" : noticesText
             }
 
-            notices[inventoryID] = reportNoticeText
 
-    logger.info("    **** Determine if there are common liceses")
-    # TODO Is it a common license?
-    for inventoryID in notices:
-        notice = notices[inventoryID]
-       
-        commonLicenesItems = [key for key, value in notices.items() if value == notice]
+    logger.debug("Total number of components within inventory: %s" %len(componentVersionLicenses))
+    
+    # With the full inventory list (including child projects) get gathered notices for each item in a bulk call
+    licenseTextData = API_license_text.get_license_text(componentVersionLicenses)
+    
+    # Try to determine what licenes were gathererd for each invnetory item
+    gatheredNotices = determine_licenses(licenseTextData)
+    
+    logger.debug("Total number of collected notices obtained: %s" %len(gatheredNotices))
+
+    # Update each inventory item notice text for the report
+    # with the gathered notices or the template notices
+    for inventoryID in inventoryData:
+        componentName = inventoryData[inventoryID]["componentName"]
+        componentVersionName = inventoryData[inventoryID]["componentVersionName"]
+        logger.debug("Processing notices for %s - %s  (%s)" %(componentName, componentVersionName, inventoryID))
+        componentVersionId = inventoryData[inventoryID]["componentVersionId"]
+        isCommonLicense = inventoryData[inventoryID]["isCommonLicense"]
+        selectedLicenseSPDXIdentifier = inventoryData[inventoryID]["selectedLicenseSPDXIdentifier"]
+        selectedLicenseId = inventoryData[inventoryID]["selectedLicenseId"]
+      
         
-        # There is more than one item that contains the same notice text
-        if len(commonLicenesItems) > 1:
-            # Just grab the name from one of the inventory Items
-            logger.info("    This inventory item %s is using a common license")
+        # Update the notices with the templatized license details
+        if isCommonLicense:
+            logger.debug("    Using stock license text")
+            updateNoticesText = commonNotices[selectedLicenseId] 
 
-            commonLicenseID = inventoryData[inventoryID]["selectedLicenseID"]
+        elif componentVersionId in gatheredNotices:     
+            logger.debug("    Using gathered license text")
+            # Update the notices with the gathered license text
+            componentNotices = gatheredNotices[componentVersionId] # This returns a list of notices 
 
-            # Do we already have a entry for the SPDX ID in the common licenses dict?
-            if commonLicenseID in commonNotices:
-                # No need to go through this again
-                logger.debug("There is already a common license entry for %s" %str(commonLicenseID))
-                # TODO is it the same text?
-
+            if selectedLicenseSPDXIdentifier in componentNotices:
+                updateNoticesText = componentNotices[selectedLicenseSPDXIdentifier]
             else:
-                # We need to update the license details for all inventory items with the common ID
-                # to link to the common text in the report
+                updateNoticesText = ""
+                for SPDXIdendifier in componentNotices:
+                    updateNoticesText += componentNotices[SPDXIdendifier]
+                    updateNoticesText += "\n\n======================================================\n\n"
 
-                commonNotices[commonLicenseID] = {}
-                commonNotices[commonLicenseID]["noticesText"] = notice
-                commonNotices[commonLicenseID]["selectedLicenseName"] = inventoryData[inventoryID]["selectedLicenseName"]
-                commonNotices[commonLicenseID]["selectedLicenseSPDXIdentifier"] = inventoryData[inventoryID]["selectedLicenseSPDXIdentifier"]
-                commonNotices[commonLicenseID]["selectedLicenseUrl"] = inventoryData[inventoryID]["selectedLicenseUrl"]
- 
-                for inventoryID in commonLicenesItems:
-                    inventoryData[inventoryID]["commonLicenseID"] = commonLicenseID # The rest will be created in the artifact
+        else:
+            logger.warning("    Not a standard license and no gathered data")
+
+            if selectedLicenseId in commonNotices:
+                logger.info("            License details already available for %s" %commonNotices[selectedLicenseId]["commonLicenseName"])
+            else:
+                commonNotices[selectedLicenseId] = gather_common_license_details(baseURL, selectedLicenseId, authToken)
+
+            inventoryData[inventoryID]["isCommonLicense"] = True
+
+
+        overrideTemplateText = False # Set to true to have the gathered text override standard license text
+        if overrideTemplateText:
+            if isCommonLicense and componentVersionId in gatheredNotices:
+                logger.debug("    Overriding template license text for common license")
+
+                componentNotices = gatheredNotices[componentVersionId] # This returns a list of notices 
+
+                if selectedLicenseSPDXIdentifier in componentNotices:
+                    updateNoticesText = componentNotices[selectedLicenseSPDXIdentifier]
+                else:
+                    updateNoticesText = ""
+                    for SPDXIdendifier in componentNotices:
+                        updateNoticesText += componentNotices[SPDXIdendifier]
+                        updateNoticesText += "\n\n======================================================\n\n"
+
+                
+                inventoryData[inventoryID]["isCommonLicense"] = False
+
+        inventoryData[inventoryID]["noticesText"] = updateNoticesText
+
+
+        if overrideExistingNoticesText:
+            print("Update the inventory item notices")
+            # Call to update inventory REST
+
 
 
     # Sort the dictionary based on the component name and version
     sortedInventoryItems = OrderedDict( sorted(inventoryData.items(), key=lambda x: (x[1]["componentName"], x[1]["componentVersionName"]) ))
-
-    sortedcommonNotices = OrderedDict( sorted(commonNotices.items(), key=lambda x: (x[1]["selectedLicenseName"] )))
-
-    
-
+    sortedcommonNotices = OrderedDict( sorted(commonNotices.items(), key=lambda x: (x[1]["commonLicenseName"] )))
+  
     # Build up the data to return for the
     reportData = {}
     reportData["projectName"] = projectHierarchy["name"]
@@ -219,3 +239,49 @@ def create_project_hierarchy(project, parentID, projectList, baseURL):
             create_project_hierarchy(childProject, childProject["id"], projectList, baseURL)
 
     return projectList
+
+#----------------------------------------------#
+def gather_common_license_details(baseURL, selectedLicenseId, authToken):
+
+    licenseDetails = CodeInsight_RESTAPIs.license.license_lookup.get_license_details(baseURL, selectedLicenseId, authToken)
+
+    stockLicenseDetails= {}
+    stockLicenseDetails["commonLicenseName"] = licenseDetails["name"]
+    stockLicenseDetails["commonLicenseURL"] = licenseDetails["url"]
+    stockLicenseDetails["spdxIdentifier"] = licenseDetails["spdxIdentifier"]
+    stockLicenseDetails["reportNoticeText"] = licenseDetails["text"]
+    logger.debug("                Adding %s to stock license details" %licenseDetails["name"])
+
+    return stockLicenseDetails
+
+#-----------------------------------------------#
+def determine_licenses(licenseTextResults):
+
+    inidicators_MIT = ["Permission is hereby granted, free of charge"]
+    inidicators_Apache_20 = ["http://www.apache.org/licenses/LICENSE-2.0"]
+    inidicators_LGPL_21_or_later = ["GNU Lesser General Public License (LGPL), version 2.1 or later'"]
+
+    licenseData = {}
+    # Cycle thru each row to create a dict per license 
+    for versionID, licenseText  in licenseTextResults:
+        licenseType = "unknown"
+
+        for indicator in inidicators_MIT:
+            if indicator in licenseText:
+                licenseType="MIT"
+
+        for indicator in inidicators_Apache_20:
+            if indicator in licenseText:
+                licenseType="Apache-2.0"
+        
+
+
+        if versionID in licenseData:
+            licenseData[versionID][licenseType] = licenseText
+        else:
+            licenseData[versionID] = {}
+            licenseData[versionID][licenseType] = licenseText
+
+    logger.info("Exiting get_licese_text")
+
+    return licenseData
