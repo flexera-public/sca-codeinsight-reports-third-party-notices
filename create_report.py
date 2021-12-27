@@ -149,14 +149,14 @@ def verifyOptions(reportOptions):
     '''
     Expected Options for report:
         includeChildProjects - True/False
-        updateNoticesText - True/False
+        overrideExistingNoticesText - True/False
     '''
     reportOptions["errorMsg"] = []
     trueOptions = ["true", "t", "yes", "y"]
     falseOptions = ["false", "f", "no", "n"]
 
     includeChildProjects = reportOptions["includeChildProjects"]
-    updateNoticesText = reportOptions["updateNoticesText"]
+    overrideExistingNoticesText = reportOptions["overrideExistingNoticesText"]
 
     if includeChildProjects.lower() in trueOptions:
         reportOptions["includeChildProjects"] = True
@@ -166,12 +166,12 @@ def verifyOptions(reportOptions):
         reportOptions["errorMsg"].append("Invalid option for including child projects: <b>%s</b>.  Valid options are <b>True/False</b>" %includeChildProjects)
 
 
-    if updateNoticesText.lower() in trueOptions:
-        reportOptions["updateNoticesText"] = True
-    elif updateNoticesText.lower() in falseOptions:
-        reportOptions["updateNoticesText"] = False
+    if overrideExistingNoticesText.lower() in trueOptions:
+        reportOptions["overrideExistingNoticesText"] = True
+    elif overrideExistingNoticesText.lower() in falseOptions:
+        reportOptions["overrideExistingNoticesText"] = False
     else:
-        reportOptions["errorMsg"].append("Invalid option for updating inventory notices text: <b>%s</b>.  Valid options are <b>True/False</b>" %updateNoticesText)
+        reportOptions["errorMsg"].append("Invalid option for updating inventory notices text: <b>%s</b>.  Valid options are <b>True/False</b>" %overrideExistingNoticesText)
 
 
     if not reportOptions["errorMsg"]:
