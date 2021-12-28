@@ -118,8 +118,9 @@ def main():
 
         print("    Report data has been collected")
         projectName = reportData["projectName"]
-        projectNameForFile = re.sub(r"[^a-zA-Z0-9]+", '-', projectName )  # Remove special characters from project name for artifacts
-
+        projectNameForFile = re.sub(r"[^a-zA-Z0-9 .]+", '-', projectName )  # Remove special characters from project name for artifacts
+        projectNameForFile = projectNameForFile.replace(" ", "_")  # Remove spaces
+        
         # Are there child projects involved?  If so have the artifact file names reflect this fact
         if len(reportData["projectList"])==1:
             reportFileNameBase = projectNameForFile + "-" + str(projectID) + "-" + reportName.replace(" ", "_") + "-" + fileNameTimeStamp
