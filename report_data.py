@@ -77,7 +77,7 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
             componentName = inventoryItem["componentName"]
             componentVersionName = inventoryItem["componentVersionName"]
 
-            logger.debug("        Processing license for %s - %s  (%s)" %(componentName, componentVersionName, inventoryID))
+            logger.debug("        Processing license details for '%s - %s  (%s)'" %(componentName, componentVersionName, inventoryID))
             
             componentVersionId = inventoryItem["componentVersionId"]
             selectedLicenseSPDXIdentifier = inventoryItem["selectedLicenseSPDXIdentifier"]
@@ -101,6 +101,8 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
                 else:
                     commonNotices[selectedLicenseId] = gather_common_license_details(baseURL, selectedLicenseId, authToken)
+                    logger.info("            Collected License details for %s" %commonNotices[selectedLicenseId]["commonLicenseName"])
+
             elif selectedLicenseId == "-1":
                 logger.warning("            The license was not selected for this inventory item")
                 isCommonLicense = False
@@ -140,7 +142,7 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
     for inventoryID in inventoryData:
         componentName = inventoryData[inventoryID]["componentName"]
         componentVersionName = inventoryData[inventoryID]["componentVersionName"]
-        logger.debug("Processing notices for %s - %s  (%s)" %(componentName, componentVersionName, inventoryID))
+        logger.debug("Processing notices for '%s - %s  (%s)'" %(componentName, componentVersionName, inventoryID))
         componentVersionId = inventoryData[inventoryID]["componentVersionId"]
         isCommonLicense = inventoryData[inventoryID]["isCommonLicense"]
         selectedLicenseSPDXIdentifier = inventoryData[inventoryID]["selectedLicenseSPDXIdentifier"]
@@ -157,18 +159,20 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
             # Update the notices with the templatized license details
             if isCommonLicense:
-                logger.debug("    Using stock license text")
+                logger.info("    Using stock/template license text")
                 updateNoticesText = commonNotices[selectedLicenseId] 
 
             elif componentVersionId in gatheredNotices:     
-                logger.debug("    Using gathered license text")
+                logger.info("    Using license text obtained during collection process")
                 # Update the notices with the gathered license text
                 componentNotices = gatheredNotices[componentVersionId] # This returns a list of notices 
                 
                 # Is there a key for the license that was selected?
                 if selectedLicenseSPDXIdentifier in componentNotices:
+                    logger.info("        License match for selected within gathered notices")
                     updateNoticesText = componentNotices[selectedLicenseSPDXIdentifier]
                 else:
+                    logger.info("        Unable to find specific match.  Add all collected notices text")
                     # Update the notices will all possible license text that was found
                     updateNoticesText = ""
                     for SPDXIdendifier in componentNotices:
@@ -182,9 +186,10 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                 logger.warning("    Not a standard license and no gathered data")
 
                 if selectedLicenseId in commonNotices:
-                    logger.info("            License details already available for %s" %commonNotices[selectedLicenseId]["commonLicenseName"])
+                    logger.info("            License details already available for '%s'" %commonNotices[selectedLicenseId]["commonLicenseName"])
                 else:
                     commonNotices[selectedLicenseId] = gather_common_license_details(baseURL, selectedLicenseId, authToken)
+                    logger.info("            Collected license details for '%s'" %commonNotices[selectedLicenseId]["commonLicenseName"])
                 
                 inventoryData[inventoryID]["isCommonLicense"] = True
                 updateNoticesText = commonNotices[selectedLicenseId] 

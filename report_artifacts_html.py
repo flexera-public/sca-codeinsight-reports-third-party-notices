@@ -167,7 +167,7 @@ def generate_html_report(reportData):
         componentName = inventoryItems[inventoryItemID]["componentName"]
         componentVersionName = inventoryItems[inventoryItemID]["componentVersionName"]
 
-        logger.info("        Processing inventory item: %s - %s  (%s)" %(componentName, componentVersionName, inventoryItemID))
+        logger.info("        Processing inventory item: '%s - %s  (%s)'" %(componentName, componentVersionName, inventoryItemID))
         selectedLicenseSPDXIdentifier = inventoryItems[inventoryItemID]["selectedLicenseSPDXIdentifier"]
         selectedLicenseName = inventoryItems[inventoryItemID]["selectedLicenseName"]
         noticesText = inventoryItems[inventoryItemID]["noticesText"]
@@ -184,6 +184,7 @@ def generate_html_report(reportData):
             logger.info("            Using common license text for %s (%s)" %(selectedLicenseName, selectedLicenseSPDXIdentifier))
             html_ptr.write("For the full text of the %s license, see <a href='#%s'>%s  (%s)</a>\n" %(selectedLicenseSPDXIdentifier, selectedLicenseSPDXIdentifier.replace(" ", "") ,selectedLicenseName, selectedLicenseSPDXIdentifier))
         else:
+            logger.info("            Non common license so use popluated value")
             html_ptr.write("<pre>%s</pre><br>\n" %noticesText)    
 
         html_ptr.write("</div>\n") 
@@ -197,8 +198,8 @@ def generate_html_report(reportData):
     html_ptr.write("This section shows the text of common third-party licenes used by %s\n" %projectName)
     html_ptr.write("<p>") 
 
-    # TODO Cycle through common licenses
-    
+    # Add section for the common licenes
+    # TODO remove common license if no components use it
     for licenseID in commonNotices:
 
         noticesText = commonNotices[licenseID]["reportNoticeText"]
