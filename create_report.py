@@ -19,6 +19,7 @@ import re
 import _version
 import report_data
 import report_artifacts
+import CodeInsight_RESTAPIs.project.upload_reports
 
 ###################################################################################
 # Test the version of python to make sure it's at least the version the script
@@ -125,8 +126,6 @@ def main():
         else:
             reportFileNameBase = projectNameForFile + "-with-children-" + str(projectID) + "-" + reportName.replace(" ", "_") + "-" + fileNameTimeStamp
 
-        reportFileNameBase = "XYZ testing"
-
         reportData["projectNameForFile"] = projectNameForFile
         reportData["reportTimeStamp"] = datetime.strptime(fileNameTimeStamp, "%Y%m%d-%H%M%S").strftime("%B %d, %Y at %H:%M:%S")
         reportData["reportDate"] = datetime.strptime(fileNameTimeStamp, "%Y%m%d-%H%M%S").strftime("%B %Y")
@@ -140,7 +139,26 @@ def main():
             reports = report_artifacts.create_report_artifacts(reportData)
             print("    Report artifacts have been created")
 
+    print("    Create report archive for upload")
+    uploadZipfile = create_report_zipfile(reports, reportFileNameBase)
+    print("    Upload zip file creation completed")
 
+
+    #########################################################
+    # Upload the file to Code Insight
+    CodeInsight_RESTAPIs.project.upload_reports.upload_project_report_data(baseURL, projectID, reportID, authToken, uploadZipfile)
+
+
+    #########################################################
+    # Remove the file since it has been uploaded to Code Insight
+    try:
+        os.remove(uploadZipfile)
+    except OSError:
+        logger.error("Error removing %s" %uploadZipfile)
+        print("Error removing %s" %uploadZipfile)
+
+    logger.info("Completed creating %s" %reportName)
+    print("Completed creating %s" %reportName)
 
 
 
