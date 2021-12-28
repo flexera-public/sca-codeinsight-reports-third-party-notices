@@ -174,7 +174,10 @@ def verifyOptions(reportOptions):
     falseOptions = ["false", "f", "no", "n"]
 
     includeChildProjects = reportOptions["includeChildProjects"]
+    generateReport = reportOptions["generateReport"]
+    updateInventory = reportOptions["updateInventory"]
     overrideExistingNoticesText = reportOptions["overrideExistingNoticesText"]
+
 
     if includeChildProjects.lower() in trueOptions:
         reportOptions["includeChildProjects"] = True
@@ -184,12 +187,27 @@ def verifyOptions(reportOptions):
         reportOptions["errorMsg"].append("Invalid option for including child projects: <b>%s</b>.  Valid options are <b>True/False</b>" %includeChildProjects)
 
 
+    if generateReport.lower() in trueOptions:
+        reportOptions["generateReport"] = True
+    elif generateReport.lower() in falseOptions:
+        reportOptions["generateReport"] = False
+    else:
+        reportOptions["errorMsg"].append("Invalid option for generation a report: <b>%s</b>.  Valid options are <b>True/False</b>" %generateReport)
+
+
+    if updateInventory.lower() in trueOptions:
+        reportOptions["updateInventory"] = True
+    elif updateInventory.lower() in falseOptions:
+        reportOptions["updateInventory"] = False
+    else:
+        reportOptions["errorMsg"].append("Invalid option for updating inventory notices text: <b>%s</b>.  Valid options are <b>True/False</b>" %updateInventory)
+
     if overrideExistingNoticesText.lower() in trueOptions:
         reportOptions["overrideExistingNoticesText"] = True
     elif overrideExistingNoticesText.lower() in falseOptions:
         reportOptions["overrideExistingNoticesText"] = False
     else:
-        reportOptions["errorMsg"].append("Invalid option for updating inventory notices text: <b>%s</b>.  Valid options are <b>True/False</b>" %overrideExistingNoticesText)
+        reportOptions["errorMsg"].append("Invalid option for updating inventory notices text even if data alread exists: <b>%s</b>.  Valid options are <b>True/False</b>" %overrideExistingNoticesText)
 
 
     if not reportOptions["errorMsg"]:
