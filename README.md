@@ -84,8 +84,7 @@ The following report options can be set once the report generation has been init
 
 - Including child projects (True/False) - Determine if child project data will be included or not.
 - Generate Report (True/False) - Create report artifacts with gathered notices
-- Update Inventory Notices (True/False) - Update the "Notices Text" field with gathered notices
-- Override Existing Notices (True/False) - Replace existing "Notices Text" field with gathered notices if already populated
+- Replace Existing Notices Text Field Value (True/False) - Replace existing "Notices Text" field with gathered notices if already populated
 
 The Code Insight Custom Report Framework will provide the following to the custom report when initiated:
 

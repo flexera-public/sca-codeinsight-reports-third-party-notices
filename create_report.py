@@ -186,7 +186,6 @@ def verifyOptions(reportOptions):
 
     includeChildProjects = reportOptions["includeChildProjects"]
     generateReport = reportOptions["generateReport"]
-    updateInventory = reportOptions["updateInventory"]
     overrideExistingNoticesText = reportOptions["overrideExistingNoticesText"]
 
 
@@ -205,13 +204,6 @@ def verifyOptions(reportOptions):
     else:
         reportOptions["errorMsg"].append("Invalid option for generation a report: <b>%s</b>.  Valid options are <b>True/False</b>" %generateReport)
 
-
-    if updateInventory.lower() in trueOptions:
-        reportOptions["updateInventory"] = True
-    elif updateInventory.lower() in falseOptions:
-        reportOptions["updateInventory"] = False
-    else:
-        reportOptions["errorMsg"].append("Invalid option for updating inventory notices text: <b>%s</b>.  Valid options are <b>True/False</b>" %updateInventory)
 
     if overrideExistingNoticesText.lower() in trueOptions:
         reportOptions["overrideExistingNoticesText"] = True
