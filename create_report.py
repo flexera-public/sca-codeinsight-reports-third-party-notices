@@ -116,29 +116,39 @@ def main():
         # No error with provided optoins so collect project/inventory data
         reportData = report_data.gather_data_for_report(baseURL, projectID, authToken, reportName, reportOptions)
 
-        print("    Report data has been collected")
-        projectName = reportData["projectName"]
-        projectNameForFile = re.sub(r"[^a-zA-Z0-9 .]+", '-', projectName )  # Remove special characters from project name for artifacts
-        projectNameForFile = projectNameForFile.replace(" ", "_")  # Remove spaces
-        
-        # Are there child projects involved?  If so have the artifact file names reflect this fact
-        if len(reportData["projectList"])==1:
-            reportFileNameBase = projectNameForFile + "-" + str(projectID) + "-" + reportName.replace(" ", "_") + "-" + fileNameTimeStamp
-        else:
-            reportFileNameBase = projectNameForFile + "-with-children-" + str(projectID) + "-" + reportName.replace(" ", "_") + "-" + fileNameTimeStamp
-
-        reportData["projectNameForFile"] = projectNameForFile
-        reportData["reportTimeStamp"] = datetime.strptime(fileNameTimeStamp, "%Y%m%d-%H%M%S").strftime("%B %d, %Y at %H:%M:%S")
-        reportData["reportDate"] = datetime.strptime(fileNameTimeStamp, "%Y%m%d-%H%M%S").strftime("%B %Y")
-        reportData["reportFileNameBase"] = reportFileNameBase
-
         # Where there any issues encountered while collecting the data?
         if "errorMsg" in reportData.keys():
+
+            reportFileNameBase = reportName.replace(" ", "_") + "-Creation_Error-" + fileNameTimeStamp
+
+            reportData["reportName"] = reportName
+            reportData["reportTimeStamp"] = datetime.strptime(fileNameTimeStamp, "%Y%m%d-%H%M%S").strftime("%B %d, %Y at %H:%M:%S")
+            reportData["reportFileNameBase"] = reportFileNameBase
+
             reports = report_artifacts.create_error_artifacts(reportData)
-            print("    Error report artifacts have been created")
+            print("    *** ERROR  ***  Error found collecting report data")
+
         else:
+            # Report data collected successfully 
+            print("    Report data has been collected")
+            projectName = reportData["projectName"]
+            projectNameForFile = re.sub(r"[^a-zA-Z0-9 .]+", '-', projectName )  # Remove special characters from project name for artifacts
+            projectNameForFile = projectNameForFile.replace(" ", "_")  # Remove spaces
+            
+            # Are there child projects involved?  If so have the artifact file names reflect this fact
+            if len(reportData["projectList"])==1:
+                reportFileNameBase = projectNameForFile + "-" + str(projectID) + "-" + reportName.replace(" ", "_") + "-" + fileNameTimeStamp
+            else:
+                reportFileNameBase = projectNameForFile + "-with-children-" + str(projectID) + "-" + reportName.replace(" ", "_") + "-" + fileNameTimeStamp
+
+            reportData["projectNameForFile"] = projectNameForFile
+            reportData["reportTimeStamp"] = datetime.strptime(fileNameTimeStamp, "%Y%m%d-%H%M%S").strftime("%B %d, %Y at %H:%M:%S")
+            reportData["reportDate"] = datetime.strptime(fileNameTimeStamp, "%Y%m%d-%H%M%S").strftime("%B %Y")
+            reportData["reportFileNameBase"] = reportFileNameBase
+
             reports = report_artifacts.create_report_artifacts(reportData)
             print("    Report artifacts have been created")
+
 
     print("    Create report archive for upload")
     uploadZipfile = create_report_zipfile(reports, reportFileNameBase)
