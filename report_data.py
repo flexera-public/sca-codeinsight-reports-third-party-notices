@@ -30,14 +30,13 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
     # Parse report options
     includeChildProjects = reportOptions["includeChildProjects"]  # True/False
     generateReport = reportOptions["generateReport"]  # True/False
-    updateInventory = reportOptions["updateInventory"]  # True/False
     overrideExistingNoticesText = reportOptions["overrideExistingNoticesText"]  # True/False
-
 
     projectList = [] # List to hold parent/child details for report
     inventoryData = {}  # Create a dictionary containing the inventory data using inventoryID as keys
     componentVersionLicenses = {}
     commonNotices = {}
+    emptyNotices = ["", "N/A"]
 
     # Get the list of parent/child projects start at the base project
     projectHierarchy = CodeInsight_RESTAPIs.project.get_child_projects.get_child_projects_recursively(baseURL, projectID, authToken)
@@ -127,18 +126,16 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                 "noticesText" : noticesText
             }
 
-
     logger.debug("Total number of components within inventory: %s" %len(componentVersionLicenses))
     
-    # There is no need to collect data since the existin notices will be used
-    if not overrideExistingNoticesText:
-        # With the full inventory list (including child projects) get gathered notices for each item in a bulk call
-        licenseTextData = API_license_text.get_license_text(componentVersionLicenses)
-        
-        # Try to determine what licenes were gathererd for each invnetory item
-        gatheredNotices = determine_licenses(licenseTextData)
-        
-        logger.debug("Total number of collected notices obtained: %s" %len(gatheredNotices))
+    # With the full inventory list (including child projects) get gathered notices for each item in a bulk call
+    licenseTextData = API_license_text.get_license_text(componentVersionLicenses)
+    # TODO Check for any issues while collecting the notices
+    
+    # Try to determine what licenes were gathererd for each invnetory item
+    gatheredNotices = determine_licenses(licenseTextData)
+
+    logger.debug("Total number of collected notices obtained: %s" %len(gatheredNotices))
 
     # Update each inventory notice text for the report with the gathered notices or the template notices
     for inventoryID in inventoryData:
@@ -151,72 +148,67 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
         selectedLicenseId = inventoryData[inventoryID]["selectedLicenseId"]
         originalNoticesText = inventoryData[inventoryID]["noticesText"]
 
-        # Default to false to ensure the inventory item is not updated unless it is supposed to be
-        newNotices = False 
+        # Determine if the the Notices Text needs to be updated
+        if isCommonLicense:
+            logger.info("    Component has common license")
+            # Is there information already there than should be used?
+            if originalNoticesText in emptyNotices:
+                logger.info("        Using stock/template license text")
+                updateNoticesText = commonNotices[selectedLicenseId]["reportNoticeText"]
+            else:
+                # Since there is custom data make sure to use it and not consider it a common license
+                logger.info("        Using existing license text")
+                updateNoticesText = originalNoticesText
+                inventoryData[inventoryID]["isCommonLicense"] = False
 
-        if overrideExistingNoticesText:
+        elif componentVersionId in gatheredNotices: 
+            # Replace any data that is already there
+            logger.info("    Component has gathered license text")
 
-            # Determine if the the Notices Text needs to be updated
-            if isCommonLicense:
-                # Is there information already there than should be used?
-                if originalNoticesText in ["", "N/A"]:
-                    logger.info("    Using stock/template license text")
-                    updateNoticesText = commonNotices[selectedLicenseId]["reportNoticeText"]
-                else:
-                    # Since there is custom data make sure to use it and not consider it a common license
-                    logger.info("    Using existing license text")
-                    updateNoticesText = originalNoticesText
-                    inventoryData[inventoryID]["isCommonLicense"] = False
-
-            elif componentVersionId in gatheredNotices: 
-                logger.info("    Using license text obtained during collection process")
+            if overrideExistingNoticesText or originalNoticesText in emptyNotices:
+                logger.info("        Using license text obtained during collection process")
                 # Update the notices with the gathered license text
                 componentNotices = gatheredNotices[componentVersionId] # This returns a list of notices 
-                
+
                 # Is there a key for the license that was selected?
                 if selectedLicenseSPDXIdentifier in componentNotices:
-                    logger.info("        License match for selected within gathered notices")
+                    logger.info("            License match for selected within gathered notices")
                     updateNoticesText = componentNotices[selectedLicenseSPDXIdentifier]
                 else:
-                    logger.info("        Unable to find specific match.  Add all collected notices text")
+                    logger.info("            Unable to find specific match.  Add all collected notices text")
                     # Update the notices will all possible license text that was found
                     updateNoticesText = ""
                     for SPDXIdendifier in componentNotices:
                         updateNoticesText += componentNotices[SPDXIdendifier]
                         updateNoticesText += "\n\n======================================================\n\n"
 
-                # There are collected notice which can be applied to the inventory item if report option enabled
-                newNotices = True
-            else:
-                # Not a specific stock license and no information was collected
-                # Is there information already there than should be used?
-                if originalNoticesText in ["", "N/A"]:
-                    logger.warning("    Not a specific common license and no gathered license data")
-                    updateNoticesText = "*** Manual Notice Review Required ***"
+                logger.info("        Update the notices field for the inventory item")
+                if originalNoticesText != updateNoticesText:
+                    CodeInsight_RESTAPIs.inventory.update_inventory.update_inventory_notices_text(inventoryID, updateNoticesText, baseURL, authToken)
+                    # TODO what if not analsyst does this?
+                    # print and log message if non analsyst
                 else:
-                    # Since there is custom data make sure to use it and not consider it a common license
-                    logger.info("    Notices have been found within the Notices Text field so so those")
-                    updateNoticesText = originalNoticesText
+                    logger.info("        Existing notices text is the same as the gathered text.  Inventory item not updated")
+
+            else:
+                # Keep the data the same as it was
+                updateNoticesText = originalNoticesText
 
         else:
-            logger.info("    Keeping existing notices from inventory item")
-            if originalNoticesText in ["", "N/A"]:
-                updateNoticesText = ""  # In case there is the default of N/A in the json response
+            # Not a specific stock license and no information was collected
+            # Is there information already there that should be used?
+            if originalNoticesText in emptyNotices:
+                logger.warning("    Not a specific common license and no gathered license data")
+                updateNoticesText = "*** Notices text not available.  Manual review required. ***"
             else:
+                # Since there is custom data make sure to use it and not consider it a common license
+                logger.info("    Notices have been found within the Notices Text field so use those")
                 updateNoticesText = originalNoticesText
+
+
 
         # Update the notices information for the inventory item based on the outcome above
         inventoryData[inventoryID]["noticesText"] = updateNoticesText
-
-        # Finally now that the notices are straightened out should the inventory itself be updated with any new data.
-        if updateInventory and newNotices:
-            logger.info("    Update the notices field for the inventory item")
-            CodeInsight_RESTAPIs.inventory.update_inventory.update_inventory_notices_text(inventoryID, updateNoticesText, baseURL, authToken)
-        else:
-            logger.info("    Inventory item is not being updated")
-
-   
-
 
 
     # Sort the dictionary based on the component name and version
