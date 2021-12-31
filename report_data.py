@@ -129,11 +129,15 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
     logger.debug("Total number of components within inventory: %s" %len(componentVersionLicenses))
     
     # With the full inventory list (including child projects) get gathered notices for each item in a bulk call
-    licenseTextData = API_license_text.get_license_text(componentVersionLicenses)
-    # TODO Check for any issues while collecting the notices
+    componentVersionLicenseData = API_license_text.get_license_text(componentVersionLicenses)
+
+    # Any issues collecting the notice data?
+    if "errorMsg" in componentVersionLicenseData.keys():
+        return componentVersionLicenseData
+
     
     # Try to determine what licenes were gathererd for each invnetory item
-    gatheredNotices = determine_licenses(licenseTextData)
+    gatheredNotices = determine_licenses(componentVersionLicenseData)
 
     logger.debug("Total number of collected notices obtained: %s" %len(gatheredNotices))
 
@@ -173,14 +177,15 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                 # Is there a key for the license that was selected?
                 if selectedLicenseSPDXIdentifier in componentNotices:
                     logger.info("            License match for selected within gathered notices")
-                    updateNoticesText = componentNotices[selectedLicenseSPDXIdentifier]
+                    updateNoticesText = "\n\n====================\n\n".join(componentNotices[selectedLicenseSPDXIdentifier])
+                    # How many are there?
                 else:
                     logger.info("            Unable to find specific match.  Add all collected notices text")
                     # Update the notices will all possible license text that was found
                     updateNoticesText = ""
                     for SPDXIdendifier in componentNotices:
-                        updateNoticesText += componentNotices[SPDXIdendifier]
-                        updateNoticesText += "\n\n======================================================\n\n"
+                        updateNoticesText +="\n\n====================\n\n".join(componentNotices[SPDXIdendifier])
+
 
                 logger.info("        Update the notices field for the inventory item")
                 if originalNoticesText != updateNoticesText:
@@ -267,33 +272,40 @@ def gather_common_license_details(baseURL, selectedLicenseId, authToken):
     return stockLicenseDetails
 
 #-----------------------------------------------#
-def determine_licenses(licenseTextResults):
-    logger.debug("        Entering determine_licenses.")
+def determine_licenses(componentVersionLicenseData):
+    logger.debug("    Entering determine_licenses.")
 
     inidicators_MIT = ["Permission is hereby granted, free of charge"]
     inidicators_Apache_20 = ["http://www.apache.org/licenses/LICENSE-2.0"]
     inidicators_LGPL_21_or_later = ["GNU Lesser General Public License (LGPL), version 2.1 or later'"]
 
-    licenseData = {}
-    # Cycle thru each row to create a dict per license 
-    for versionID, licenseText  in licenseTextResults:
-        licenseType = "unknown"
+    licenseData = {} 
 
-        for indicator in inidicators_MIT:
-            if indicator in licenseText:
-                licenseType="MIT"
-
-        for indicator in inidicators_Apache_20:
-            if indicator in licenseText:
-                licenseType="Apache-2.0"
+    # Convert the dict of lists to a dict of dicts with SPDX as the license key
+    for componentVersionID in componentVersionLicenseData:
+        logger.info("        %s licenses found for %s" %(len(componentVersionLicenseData[componentVersionID]), componentVersionID))
         
+        for licenseText in componentVersionLicenseData[componentVersionID]:
+            licenseType = "unknown"
+
+            for indicator in inidicators_MIT:
+                if indicator in licenseText:
+                    licenseType="MIT"
+
+            for indicator in inidicators_Apache_20:
+                if indicator in licenseText:
+                    licenseType="Apache-2.0"
+
+            if componentVersionID in licenseData:
+                if licenseType in licenseData[componentVersionID]:
+                    licenseData[componentVersionID][licenseType].append(licenseText)
+                else:
+                    licenseData[componentVersionID][licenseType] = [licenseText]
+            else:
+                licenseData[componentVersionID] = {}
+                licenseData[componentVersionID][licenseType] = [licenseText]
 
 
-        if versionID in licenseData:
-            licenseData[versionID][licenseType] = licenseText
-        else:
-            licenseData[versionID] = {}
-            licenseData[versionID][licenseType] = licenseText
 
     logger.info("Exiting get_licese_text")
 
