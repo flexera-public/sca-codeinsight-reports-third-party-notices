@@ -29,7 +29,6 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
     # Parse report options
     includeChildProjects = reportOptions["includeChildProjects"]  # True/False
-    generateReport = reportOptions["generateReport"]  # True/False
     overrideExistingNoticesText = reportOptions["overrideExistingNoticesText"]  # True/False
 
     projectList = [] # List to hold parent/child details for report

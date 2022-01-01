@@ -83,7 +83,6 @@ This report is executed directly from within Revenera's Code Insight product. Fr
 The following report options can be set once the report generation has been initiated:
 
 - Including child projects (True/False) - Determine if child project data will be included or not.
-- Generate Report (True/False) - Create report artifacts with gathered notices
 - Replace Existing Notices Text Field Value (True/False) - Replace existing "Notices Text" field with gathered notices if already populated
 
 The Code Insight Custom Report Framework will provide the following to the custom report when initiated:
