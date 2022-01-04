@@ -80,33 +80,13 @@ reportOption["order"] = "1"
 reportOptions.append(reportOption)
 
 reportOption = {}
-reportOption["name"] = "generateReport"
-reportOption["label"] = "Create report artifacts"
-reportOption["description"] = "Generate the Third Party Notices report? <b>(True/False)</b>"
-reportOption["type"] = "string"
-reportOption["defaultValue"] = "True"
-reportOption["required"] = "true"
-reportOption["order"] = "2"
-reportOptions.append(reportOption)
-
-reportOption = {}
-reportOption["name"] = "updateInventory"
-reportOption["label"] = "Update inventory items 'Notices Text'"
-reportOption["description"] = "Should the 'Notices Text' for each inventory item be updated with the gathered notices? <b>(True/False)</b>"
-reportOption["type"] = "string"
-reportOption["defaultValue"] = "True"
-reportOption["required"] = "true"
-reportOption["order"] = "3"
-reportOptions.append(reportOption)
-
-reportOption = {}
 reportOption["name"] = "overrideExistingNoticesText"
 reportOption["label"] = "Override any exiting 'Notices Text'"
 reportOption["description"] = "If there is already existing notices data should it be replaced with what was gathered? <b>(True/False)</b>"
 reportOption["type"] = "string"
 reportOption["defaultValue"] = "False"
 reportOption["required"] = "true"
-reportOption["order"] = "4"
+reportOption["order"] = "2"
 reportOptions.append(reportOption)
 
 #####################################################################################################
