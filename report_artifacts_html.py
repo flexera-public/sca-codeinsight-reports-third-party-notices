@@ -48,6 +48,8 @@ def generate_html_report(reportData):
         logger.error("Failed to open htmlfile %s:" %htmlFile)
         raise
 
+    html_ptr.write("<!DOCTYPE html>\n") 
+    html_ptr.write("<html lang=\"en\">\n") 
     html_ptr.write("<html>\n") 
     html_ptr.write("    <head>\n")
 
@@ -103,18 +105,22 @@ def generate_html_report(reportData):
     html_ptr.write("<!-- BEGIN BODY -->\n")  
     html_ptr.write("<div class=\"container-fluid\">\n")
 
-    html_ptr.write("<H1>%s</H1>\n" %projectName)
-    html_ptr.write("<H1>Third-Party Notices</H1>\n")
-    html_ptr.write("<H4>%s</H4>\n" %reportDate)
-    html_ptr.write("<hr>\n")
+    html_ptr.write("    <H1>%s</H1>\n" %projectName)
+    html_ptr.write("    <H1>Third-Party Notices</H1>\n")
+    html_ptr.write("    <H4>%s</H4>\n" %reportDate)
+    html_ptr.write("    <hr>\n")
 
 
-    html_ptr.write("<div class=\"container-fluid\">\n")
-    html_ptr.write("<b>Introduction</b>\n")
-    html_ptr.write("<br>\n")
-    html_ptr.write("<b>Third Party Components</b>\n")
-    html_ptr.write("<br>\n")
-    html_ptr.write("<div class=\"container-fluid\">\n")
+    html_ptr.write("    <div class=\"container-fluid\">\n")
+    html_ptr.write("        This document provides notices information for the third-party components used by %s.\n" %projectName)       
+    html_ptr.write("    </div>\n")   
+
+    html_ptr.write("    <p>\n") 
+
+    html_ptr.write("    <br>\n")
+    html_ptr.write("    <div class=\"container-fluid\">\n")
+    html_ptr.write("        <b>Third Party Components</b>\n")
+    html_ptr.write("        <div class=\"container-fluid\">\n")
 
     for inventoryItemID in inventoryItems:
         componentName = inventoryItems[inventoryItemID]["componentName"]
@@ -122,46 +128,37 @@ def generate_html_report(reportData):
         selectedLicenseSPDXIdentifier = inventoryItems[inventoryItemID]["selectedLicenseSPDXIdentifier"]
         
         # Link to the license details below using the inventory ID
-        html_ptr.write("<a href='#%s'>%s  %s  (%s)</a><br>\n" %(inventoryItemID, componentName, componentVersionName, selectedLicenseSPDXIdentifier))
+        html_ptr.write("            <a href='#%s'>%s  %s  (%s)</a><br>\n" %(inventoryItemID, componentName, componentVersionName, selectedLicenseSPDXIdentifier))
 
-    html_ptr.write("</div>\n")
+    html_ptr.write("        </div>\n")
 
-    html_ptr.write("<b>Common Licenses</b>\n")
-    html_ptr.write("<br>\n")
-    html_ptr.write("<div class=\"container-fluid\">\n")
+    html_ptr.write("        <br>\n")
+    html_ptr.write("        <b>Common Licenses</b>\n")
+    html_ptr.write("        <br>\n")
+    html_ptr.write("        <div class=\"container-fluid\">\n")
 
     for licenseID in commonNotices:
         selectedLicenseName = commonNotices[licenseID]["commonLicenseName"]
         selectedLicenseSPDXIdentifier = commonNotices[licenseID]["spdxIdentifier"]
 
-        html_ptr.write("<a href='#%s'>%s  (%s)</a>\n" %(selectedLicenseSPDXIdentifier.replace(" ", ""), selectedLicenseName, selectedLicenseSPDXIdentifier))
-        html_ptr.write("<br>\n")
+        html_ptr.write("        <a href='#%s'>%s  (%s)</a>\n" %(selectedLicenseSPDXIdentifier.replace(" ", ""), selectedLicenseName, selectedLicenseSPDXIdentifier))
+        html_ptr.write("        <br>\n")
 
 
-    html_ptr.write("</div>\n")
+    html_ptr.write("        </div>\n")
 
-    html_ptr.write("<b>Legal Information</b>\n")
-    html_ptr.write("<br>\n")
-    html_ptr.write("<div class=\"container-fluid\">\n")
-    html_ptr.write("Copyright Notice<br>\n")
-    html_ptr.write("Intellectual Property<br>\n")
-    html_ptr.write("Restricted Rights Legend<br>\n")
-    html_ptr.write("</div>\n")   
+    html_ptr.write("    </div>\n")
 
-    html_ptr.write("<hr>\n")
+
+
+    html_ptr.write("    <hr>\n")
 
     #--  The main body of the report
-    html_ptr.write("<H2>Introduction</H2>\n")
-    html_ptr.write("<div class=\"container-fluid\">\n")
-    html_ptr.write("This document provides notices information for the third-party components used by %s.\n" %projectName)       
-    html_ptr.write("</div>\n")   
-    html_ptr.write("<p>") 
 
-    html_ptr.write("<H2>Third-Party Components</H2>\n")
-    html_ptr.write("<div class=\"container-fluid\">\n")
-    html_ptr.write("The following is a list of the third-party components used by %s.\n" %projectName)
-      
-    html_ptr.write("<p>") 
+    html_ptr.write("    <H2>Third-Party Components</H2>\n")
+    html_ptr.write("    <div class=\"container-fluid\">\n")
+    html_ptr.write("        The following is a list of the third-party components used by %s.\n" %projectName)
+    html_ptr.write("        <p>\n") 
 
     for inventoryItemID in inventoryItems:
         componentName = inventoryItems[inventoryItemID]["componentName"]
@@ -173,25 +170,26 @@ def generate_html_report(reportData):
         noticesText = inventoryItems[inventoryItemID]["noticesText"]
         componentUrl = inventoryItems[inventoryItemID]["componentUrl"]
 
-        html_ptr.write("<h5 id=%s>%s  %s  (%s)</h5>\n" %(inventoryItemID, componentName, componentVersionName, selectedLicenseSPDXIdentifier))
+        html_ptr.write("        <h5 id=%s>%s  %s  (%s)</h5>\n" %(inventoryItemID, componentName, componentVersionName, selectedLicenseSPDXIdentifier))
 
-        html_ptr.write("<div class=\"container-fluid\">\n")
-        html_ptr.write("<a href='%s' target='_blank'>%s</a><br>\n" %(componentUrl, componentUrl))
-        html_ptr.write("<p>\n")
-        html_ptr.write("<p>\n")
+        html_ptr.write("        <div class=\"container-fluid\">\n")
+        html_ptr.write("            <a href='%s' target='_blank'>%s</a><br>\n" %(componentUrl, componentUrl))
+        html_ptr.write("            <p>\n")
+        html_ptr.write("            <p>\n")
 
         if inventoryItems[inventoryItemID]["isCommonLicense"]:
             logger.info("            Using common license text for %s (%s)" %(selectedLicenseName, selectedLicenseSPDXIdentifier))
-            html_ptr.write("For the full text of the %s license, see <a href='#%s'>%s  (%s)</a>\n" %(selectedLicenseSPDXIdentifier, selectedLicenseSPDXIdentifier.replace(" ", "") ,selectedLicenseName, selectedLicenseSPDXIdentifier))
+            html_ptr.write("            For the full text of the %s license, see <a href='#%s'>%s  (%s)</a>\n" %(selectedLicenseSPDXIdentifier, selectedLicenseSPDXIdentifier.replace(" ", "") ,selectedLicenseName, selectedLicenseSPDXIdentifier))
         else:
             logger.info("            Non common license so use popluated value")
-            html_ptr.write("<pre>%s</pre><br>\n" %noticesText)    
+            html_ptr.write("            <pre>%s</pre><br>\n" %noticesText)    
 
-        html_ptr.write("</div>\n") 
-        html_ptr.write("<p>\n") 
+        html_ptr.write("        </div>\n") 
+        html_ptr.write("        <p>\n") 
     
-
     html_ptr.write("</div>\n")   
+    html_ptr.write("<p>") 
+    html_ptr.write("<hr>\n")
 
     html_ptr.write("<H2>Common Licenses</H2>\n")
     html_ptr.write("<div class=\"container-fluid\">\n")
@@ -217,13 +215,6 @@ def generate_html_report(reportData):
     html_ptr.write("</div>\n")   
     html_ptr.write("<p>\n") 
 
-
-
-    html_ptr.write("<H2>Legal Information</H2>\n")
-    html_ptr.write("<div class=\"container-fluid\">\n")
-    html_ptr.write("This document provides notices information for the third-party components used by %s.\n" %projectName)       
-    html_ptr.write("</div>\n")   
-    html_ptr.write("<p>") 
 
     html_ptr.write("</div>\n") # End of body fluid container
     html_ptr.write("<!-- END BODY -->\n")  
