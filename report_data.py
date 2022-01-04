@@ -127,18 +127,20 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
     logger.debug("Total number of components within inventory: %s" %len(componentVersionLicenses))
     
-    # With the full inventory list (including child projects) get gathered notices for each item in a bulk call
-    componentVersionLicenseData = API_license_text.get_license_text(componentVersionLicenses)
 
-    # Any issues collecting the notice data?
-    if "errorMsg" in componentVersionLicenseData.keys():
-        return componentVersionLicenseData
+    # With the full inventory list (including child projects) get gathered notices for each item in a bulk call
+    if len(componentVersionLicenses):
+        componentVersionLicenseData = API_license_text.get_license_text(componentVersionLicenses)
+
+        # Any issues collecting the notice data?
+        if "errorMsg" in componentVersionLicenseData.keys():
+            return componentVersionLicenseData
 
     
-    # Try to determine what licenes were gathererd for each invnetory item
-    gatheredNotices = determine_licenses(componentVersionLicenseData)
+        # Try to determine what licenes were gathererd for each invnetory item
+        gatheredNotices = determine_licenses(componentVersionLicenseData)
 
-    logger.debug("Total number of collected notices obtained: %s" %len(gatheredNotices))
+        logger.debug("Total number of collected notices obtained: %s" %len(gatheredNotices))
 
     # Update each inventory notice text for the report with the gathered notices or the template notices
     for inventoryID in inventoryData:
