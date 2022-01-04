@@ -10,6 +10,7 @@ File : report_artifacts.py
 import logging
 
 import report_artifacts_html
+import report_artifacts_text
 import report_artifacts_error
 
 
@@ -23,9 +24,10 @@ def create_report_artifacts(reportData):
     reports = {}
 
     htmlFile = report_artifacts_html.generate_html_report(reportData)
+    textFile = report_artifacts_text.generate_text_report(reportData)
 
     reports["viewable"] = htmlFile
-    reports["allFormats"] = [htmlFile]
+    reports["allFormats"] = [htmlFile, textFile]
 
     logger.info("Exiting create_report_artifacts")
     
@@ -39,9 +41,10 @@ def create_error_artifacts(reportData):
     reports = {}
 
     htmlFile = report_artifacts_error.generate_error_report(reportData)
+    textFile = report_artifacts_text.generate_text_report(reportData)
     
     reports["viewable"] = htmlFile
-    reports["allFormats"] = [htmlFile]
+    reports["allFormats"] = [htmlFile, textFile]
 
     logger.info("Exiting create_report_artifacts")
     
