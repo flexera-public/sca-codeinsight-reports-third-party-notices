@@ -41,10 +41,9 @@ def create_error_artifacts(reportData):
     reports = {}
 
     htmlFile = report_artifacts_error.generate_error_report(reportData)
-    textFile = report_artifacts_text.generate_text_report(reportData)
     
     reports["viewable"] = htmlFile
-    reports["allFormats"] = [htmlFile, textFile]
+    reports["allFormats"] = [htmlFile]
 
     logger.info("Exiting create_report_artifacts")
     
