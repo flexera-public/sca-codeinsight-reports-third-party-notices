@@ -89,7 +89,7 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
             # TODO Which URL should be used
             if componentVersionId != "N/A":
-                componentVersionLicenses[componentVersionId] = selectedLicenseId
+                componentVersionLicenses[componentVersionId] = componentVersionLicenses
 
             # Collect the standard license text details if required
             if selectedLicenseId in common_licenses.commonLicenses.keys():
@@ -146,8 +146,8 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
     for inventoryID in inventoryData:
         componentName = inventoryData[inventoryID]["componentName"]
         componentVersionName = inventoryData[inventoryID]["componentVersionName"]
-        logger.debug("Processing notices for '%s - %s  (%s)'" %(componentName, componentVersionName, inventoryID))
         componentVersionId = inventoryData[inventoryID]["componentVersionId"]
+        logger.debug("Processing notices for '%s - %s  (Inv ID: %s  - CompVerID: %s)'" %(componentName, componentVersionName, inventoryID, componentVersionId))
         isCommonLicense = inventoryData[inventoryID]["isCommonLicense"]
         selectedLicenseSPDXIdentifier = inventoryData[inventoryID]["selectedLicenseSPDXIdentifier"]
         selectedLicenseId = inventoryData[inventoryID]["selectedLicenseId"]
@@ -174,6 +174,7 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                 logger.info("        Using license text obtained during collection process")
                 # Update the notices with the gathered license text
                 componentNotices = gatheredNotices[componentVersionId] # This returns a list of notices 
+                logger.info("            Found %s licenses" %len(gatheredNotices[componentVersionId]))
 
                 # Is there a key for the license that was selected?
                 if selectedLicenseSPDXIdentifier in componentNotices:
