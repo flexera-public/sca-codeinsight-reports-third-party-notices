@@ -176,46 +176,40 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                 componentNotices = processedNotices[componentVersionId] # Dict of notices for this component
                 
                 logger.info("            Found %s licenses for component/version" %len(componentNotices))
+     
+                updateNoticesText = ""
+                # Combine all license text into a single value
+                for uniqueLicenseID in componentNotices:
 
+                    if componentNotices[uniqueLicenseID]["licenseType"] in selectedLicenseSPDXIdentifier:
+                        logger.info("            Selected license %s has a matching license type in gathered notices" %selectedLicenseSPDXIdentifier)
+                        uniqueLicenseText = componentNotices[uniqueLicenseID]["licenseText"]
+                    else:
+                        uniqueLicenseText = componentNotices[uniqueLicenseID]["licenseText"]
 
-                if 1:
-                    updateNoticesText = ""
-                    # Combine all license text into a single value
-                    for uniqueLicenseID in componentNotices:
+                    updateNoticesText += uniqueLicenseText + "\n\n====================\n\n"
+
+                # Can we update the notices text to be specific based on the slected license for the inventory item?
+
+                # Create a dictionary of all licenses for the component using determined licenes type as key
+                # Each value may be a list of possible texts gathered....
+                licenseTextByType = {}
+                
+                for uniqueLicenseID in componentNotices:
+                    licenseType = componentNotices[uniqueLicenseID]["licenseType"]
+                    licenseText = componentNotices[uniqueLicenseID]["licenseText"]
+
+                    if licenseType in licenseTextByType:
+                        licenseTextByType[licenseType].append(licenseText)
+                    else:
+                        licenseTextByType[licenseType] = [licenseText]
+
+                # Can we match data to the selected license for the inventory item?
+                for licenseType in licenseTextByType:
+                    if licenseType in selectedLicenseSPDXIdentifier:
+                        logger.info("            Override notice text using SDPX Identifier for inventory item")
+                        updateNoticesText = "\n\n====================\n\n".join(licenseTextByType[licenseType])
     
-                        if componentNotices[uniqueLicenseID]["licenseType"] in selectedLicenseSPDXIdentifier:
-                            logger.info("            Selected license %s has a matching license type in gathered notices" %selectedLicenseSPDXIdentifier)
-                            uniqueLicenseText = componentNotices[uniqueLicenseID]["licenseText"]
-                        else:
-                            uniqueLicenseText = componentNotices[uniqueLicenseID]["licenseText"]
-
-                        updateNoticesText += uniqueLicenseText + "\n\n====================\n\n"
-
-                else:
-
-                    # Create a dictionary of all licenses for the component using determined licenes type as key
-                    # Each value may be a list of possible texts gathered....
-                    licenseTextByType = {}
-                    
-                    # for uniqueLicenseID in componentNotices:
-                    #     licenseType = componentNotices[uniqueLicenseID]["licenseType"]
-                    #     licenseText = componentNotices[uniqueLicenseID]["licenseText"]
-
-                    #     if licenseType in licenseTextByType:
-                    #         licenseTextByType[licenseType].append(licenseText)
-                    #     else:
-                    #         licenseTextByType[licenseType] = [licenseText]
-
-
-                    # updateNoticesText = ""
-
-                    # # Can we match data to the selected license for the inventory item?
-                    # for licenseType in licenseTextByType:
-                    #     if licenseType in selectedLicenseSPDXIdentifier:
-                    #         updateNoticesText = "\n\n====================\n\n".join(licenseTextByType[licenseType])
-        
-
-
 
                 logger.info("        Update the notices field for the inventory item")
                 if originalNoticesText != updateNoticesText:
