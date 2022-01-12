@@ -116,7 +116,7 @@ def generate_text_report(reportData):
         selectedLicenseSPDXIdentifier = commonNotices[licenseID]["spdxIdentifier"]
         selectedLicenseUrl = commonNotices[licenseID]["commonLicenseURL"]
 
-        text_ptr.write("%s  (%s)>\n" %(selectedLicenseName, selectedLicenseSPDXIdentifier) )
+        text_ptr.write("%s  (%s)\n" %(selectedLicenseName, selectedLicenseSPDXIdentifier) )
         text_ptr.write("%s\n" %(selectedLicenseUrl))
         text_ptr.write("\n")   
         text_ptr.write("%s\n" %noticesText)
