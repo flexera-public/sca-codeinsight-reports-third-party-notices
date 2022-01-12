@@ -10,8 +10,6 @@ File : report_data.py
 import logging
 from collections import OrderedDict
 
-from datetime import datetime # TODO Remove after temp inventory testing
-
 import CodeInsight_RESTAPIs.project.get_child_projects
 import CodeInsight_RESTAPIs.project.get_project_inventory
 import CodeInsight_RESTAPIs.license.license_lookup
@@ -130,17 +128,17 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
     # With the full inventory list (including child projects) get gathered notices for each item in a bulk call
     if len(componentVersionLicenses):
-        componentVersionLicenseData = API_license_text.get_license_text(componentVersionLicenses)
+        gatheredNotices = API_license_text.get_license_text(componentVersionLicenses)
 
         # Any issues collecting the notice data?
-        if "errorMsg" in componentVersionLicenseData.keys():
-            return componentVersionLicenseData
+        try:
+            if "errorMsg" in gatheredNotices.keys():
+                return gatheredNotices
+        except:
+                logger.debug("Total number of collected notices obtained: %s" %len(gatheredNotices))
 
-    
-        # Try to determine what licenes were gathererd for each invnetory item
-        gatheredNotices = determine_licenses(componentVersionLicenseData)
+        processedNotices = process_notices(gatheredNotices)
 
-        logger.debug("Total number of collected notices obtained: %s" %len(gatheredNotices))
 
     # Update each inventory notice text for the report with the gathered notices or the template notices
     for inventoryID in inventoryData:
@@ -166,27 +164,57 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                 updateNoticesText = originalNoticesText
                 inventoryData[inventoryID]["isCommonLicense"] = False
 
-        elif componentVersionId in gatheredNotices: 
+        elif componentVersionId in processedNotices: 
             # Replace any data that is already there
             logger.info("    Component has gathered license text")
+            logger.info("        %s unique license found." %(len (processedNotices[componentVersionId])))
 
             if overrideExistingNoticesText or originalNoticesText in emptyNotices:
                 logger.info("        Using license text obtained during collection process")
                 # Update the notices with the gathered license text
-                componentNotices = gatheredNotices[componentVersionId] # This returns a list of notices 
-                logger.info("            Found %s licenses" %len(gatheredNotices[componentVersionId]))
+                
+                componentNotices = processedNotices[componentVersionId] # Dict of notices for this component
+                
+                logger.info("            Found %s licenses for component/version" %len(componentNotices))
 
-                # Is there a key for the license that was selected?
-                if selectedLicenseSPDXIdentifier in componentNotices:
-                    logger.info("            License match for selected within gathered notices")
-                    updateNoticesText = "\n\n====================\n\n".join(componentNotices[selectedLicenseSPDXIdentifier])
-                    # How many are there?
-                else:
-                    logger.info("            Unable to find specific match.  Add all collected notices text")
-                    # Update the notices will all possible license text that was found
+
+                if 1:
                     updateNoticesText = ""
-                    for SPDXIdendifier in componentNotices:
-                        updateNoticesText +="\n\n====================\n\n".join(componentNotices[SPDXIdendifier])
+                    # Combine all license text into a single value
+                    for uniqueLicenseID in componentNotices:
+    
+                        if componentNotices[uniqueLicenseID]["licenseType"] in selectedLicenseSPDXIdentifier:
+                            logger.info("            Selected license %s has a matching license type in gathered notices" %selectedLicenseSPDXIdentifier)
+                            uniqueLicenseText = componentNotices[uniqueLicenseID]["licenseText"]
+                        else:
+                            uniqueLicenseText = componentNotices[uniqueLicenseID]["licenseText"]
+
+                        updateNoticesText += uniqueLicenseText + "\n\n====================\n\n"
+
+                else:
+
+                    # Create a dictionary of all licenses for the component using determined licenes type as key
+                    # Each value may be a list of possible texts gathered....
+                    licenseTextByType = {}
+                    
+                    # for uniqueLicenseID in componentNotices:
+                    #     licenseType = componentNotices[uniqueLicenseID]["licenseType"]
+                    #     licenseText = componentNotices[uniqueLicenseID]["licenseText"]
+
+                    #     if licenseType in licenseTextByType:
+                    #         licenseTextByType[licenseType].append(licenseText)
+                    #     else:
+                    #         licenseTextByType[licenseType] = [licenseText]
+
+
+                    # updateNoticesText = ""
+
+                    # # Can we match data to the selected license for the inventory item?
+                    # for licenseType in licenseTextByType:
+                    #     if licenseType in selectedLicenseSPDXIdentifier:
+                    #         updateNoticesText = "\n\n====================\n\n".join(licenseTextByType[licenseType])
+        
+
 
 
                 logger.info("        Update the notices field for the inventory item")
@@ -211,8 +239,6 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                 # Since there is custom data make sure to use it and not consider it a common license
                 logger.info("    Notices have been found within the Notices Text field so use those")
                 updateNoticesText = originalNoticesText
-
-
 
         # Update the notices information for the inventory item based on the outcome above
         inventoryData[inventoryID]["noticesText"] = updateNoticesText
@@ -273,42 +299,104 @@ def gather_common_license_details(baseURL, selectedLicenseId, authToken):
 
     return stockLicenseDetails
 
+
+
 #-----------------------------------------------#
-def determine_licenses(componentVersionLicenseData):
-    logger.debug("    Entering determine_licenses.")
+def process_notices(gatheredNotices):
+    logger.debug("    Entering process_notices.")
 
-    inidicators_MIT = ["Permission is hereby granted, free of charge"]
-    inidicators_Apache_20 = ["http://www.apache.org/licenses/LICENSE-2.0"]
-    inidicators_LGPL_21_or_later = ["GNU Lesser General Public License (LGPL), version 2.1 or later'"]
+    dedupedNotices = {}
+    # Deduplicate the returned data based on the licenseTextId
+    # and create a dictionary based on componentVersionIDs that contains
+    # a list of the notice texts
+    for notice in gatheredNotices:
+        componentVersionID = notice["versionId"]
+        licenseID = notice["licenseTextId"]
 
-    licenseData = {} 
+        if componentVersionID not in dedupedNotices:
+            dedupedNotices[componentVersionID] = {}
 
-    # Convert the dict of lists to a dict of dicts with SPDX as the license key
-    for componentVersionID in componentVersionLicenseData:
-        logger.info("        %s licenses found for %s" %(len(componentVersionLicenseData[componentVersionID]), componentVersionID))
-        
-        for licenseText in componentVersionLicenseData[componentVersionID]:
-            licenseType = "unknown"
+        # Do we already have the license itself?
+        if licenseID not in dedupedNotices[componentVersionID]:
+            dedupedNotices[componentVersionID][licenseID] = {}
+            dedupedNotices[componentVersionID][licenseID] ["filePath"] = notice["filePath"]
+            dedupedNotices[componentVersionID][licenseID] ["licenseText"] = notice["text"]
 
-            for indicator in inidicators_MIT:
-                if indicator in licenseText:
-                    licenseType="MIT"
+            # Can a determination as to what license a specfic text is based on 
+            # license file name or specific contents of the text?
 
-            for indicator in inidicators_Apache_20:
-                if indicator in licenseText:
-                    licenseType="Apache-2.0"
+            licenseType = determine_licenses(notice["filePath"], notice["text"] )
 
-            if componentVersionID in licenseData:
-                if licenseType in licenseData[componentVersionID]:
-                    licenseData[componentVersionID][licenseType].append(licenseText)
-                else:
-                    licenseData[componentVersionID][licenseType] = [licenseText]
-            else:
-                licenseData[componentVersionID] = {}
-                licenseData[componentVersionID][licenseType] = [licenseText]
+            logger.info("        For CompVerID: %s licenesID: %s -- Determined licenseType: %s" %(componentVersionID, licenseID, licenseType))
+            
+            dedupedNotices[componentVersionID][licenseID]["licenseType"] = licenseType
+
+    HTMLFreeNotices = {}
+
+    # If there is more than one licese text for a specific component remove any html versions
+    for componentVersionID in dedupedNotices:
+        HTMLFreeNotices[componentVersionID]={}
+        if len(dedupedNotices[componentVersionID]) > 1:
+            for licenseID in dedupedNotices[componentVersionID]:
+                if not dedupedNotices[componentVersionID][licenseID]["filePath"].endswith(tuple(["html", "htm"])):
+                    HTMLFreeNotices[componentVersionID][licenseID] = dedupedNotices[componentVersionID][licenseID]
+        else:
+            # There is just a single license so use it
+            HTMLFreeNotices[componentVersionID] = dedupedNotices[componentVersionID]
 
 
+    logger.info("        Exiting process_notices")
+    return HTMLFreeNotices
 
-    logger.info("Exiting get_licese_text")
 
-    return licenseData
+#-----------------------------------------------#
+def determine_licenses(filePath, licenseText):
+    logger.debug("            Entering determine_licenses.")
+
+    strippedlicenesText = "".join(licenseText.split()).lower()
+
+    licenseType = "unknown"
+
+    licenseIndicators = {}
+    licenseIndicators["MIT"] = "Permission is hereby granted, free of charge"
+
+    licenseIndicators["Apache-1.0"] = "Copyright (c) 1995-1999 The Apache Group. All rights reserved."
+    licenseIndicators["Apache-1.1"] = "Apache License 1.1 Copyright (c) 2000 The Apache Software Foundation. All rights reserved."
+    licenseIndicators["Apache-2.0"] = "Apache License Version 2.0, January 2004"
+
+    licenseIndicators["0BSD"] = "Redistribution and use in source and binary forms"
+    licenseIndicators["BSD-1-Clause"] = "Redistributions of source code"
+    licenseIndicators["BSD-2-Clause"] = "Redistributions in binary form"
+    licenseIndicators["BSD-3-Clause"] = "Neither the name of the copyright holder nor the names"
+    licenseIndicators["BSD-4-Clause"] = "All advertising materials mentioning features"
+
+    licenseIndicators["GPL-1.0"] = "GNU GENERAL PUBLIC LICENSE Version 1, February 1989"
+    licenseIndicators["GPL-2.0"] = "GNU GENERAL PUBLIC LICENSE Version 2, June 1991"
+    licenseIndicators["GPL-3.0"] = "GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007"
+
+    licenseIndicators["LGPL-2.0"] = "GNU LIBRARY GENERAL PUBLIC LICENSE Version 2, June 1991"
+    licenseIndicators["LGPL-2.1"] = "GNU LESSER GENERAL PUBLIC LICENSE Version 2.1, February 1999"
+    licenseIndicators["LGPL-3.0"] = "GNU LESSER GENERAL PUBLIC LICENSE Version 3, 29 June 2007"   
+ 
+    # Can the licnse be determine by the file name
+    if "mit" in filePath.lower():
+        licenseType = "MIT"
+    elif "gpl-3.0" in filePath.lower():
+        licenseType = "GPL-3.0"
+    elif "gpl-2.0" in filePath.lower():
+        licenseType = "GPL-2.0"
+    elif "lgpl-2.1" in filePath.lower():
+        licenseType = "LGPL-2.1"
+    elif "lgpl-3.0" in filePath.lower():
+        licenseType = "LGPL-3.0"
+    else:
+        logger.info("                Unable to determine license type by file name.  Checking license text")    
+        # Try to determine by the licesne text
+        for licenseTypeOption in licenseIndicators:
+            strippedIndicatorText = "".join(licenseIndicators[licenseTypeOption].split()).lower()    
+            if strippedlicenesText.find(strippedIndicatorText) > -1:
+                licenseType = licenseTypeOption
+
+    logger.info("            Exiting determine_licenses")
+
+    return licenseType
