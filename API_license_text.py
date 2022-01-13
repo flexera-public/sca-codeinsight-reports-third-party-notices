@@ -21,15 +21,20 @@ def get_license_text(componentVersionLicenses):
     if type(licenseTextResults) is tuple:
         logger.info("    Tuple returned")
 
-        # Take the tuple from the DB query and make a dictionary
-        licenseData = {}
-        # Cycle thru each row to create a dict per license 
-        for versionID, licenseText in licenseTextResults:
+        # Take the data from the DB extrct and mimic the response as if it was coming from 
+        # the API directly
 
-            if versionID in licenseData:
-                licenseData[versionID].append(licenseText)
-            else:
-                licenseData[versionID] = [licenseText]
+        licenseData = []
+        # Cycle thru each row to create a dict per license 
+        for versionID, licenseID, filePath, licenseText in licenseTextResults:
+            licenseTextDetails = {}
+            licenseTextDetails["versionId"] = versionID
+            licenseTextDetails["licenseTextId"] = licenseID
+            licenseTextDetails["filePath"] = filePath.decode()
+            licenseTextDetails["text"] = licenseText
+
+            licenseData.append(licenseTextDetails)
+
 
         return licenseData
 
@@ -67,7 +72,7 @@ def get_all_license_text_data(componentVersionLicenses):
     cursor = db.cursor()
 
    
-    sqlQuery = """SELECT v.version_id, l.text 'license_text'
+    sqlQuery = """SELECT v.version_id, l.id, m.file_path, l.text 'license_text'
                     FROM components c
                     JOIN versions v ON c.component_id = v.component_id
                     JOIN releases r ON r.version_id = v.version_id
