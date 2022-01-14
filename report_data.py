@@ -75,10 +75,13 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
             if inventoryItem["type"] != "Component":
                 continue
 
-
             inventoryID = inventoryItem["id"]
             componentName = inventoryItem["componentName"]
             componentVersionName = inventoryItem["componentVersionName"]
+            
+            if componentVersionName == "N/A":
+                componentVersionName = ""
+
 
             logger.debug("        Processing license details for '%s - %s  (%s)'" %(componentName, componentVersionName, inventoryID))
             
@@ -94,6 +97,13 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
             # TODO Which URL should be used
             if componentVersionId != "N/A":
                 componentVersionLicenses[componentVersionId] = componentVersionLicenses
+
+            # Clean up license details for report
+            if selectedLicenseName == "I don't know":
+                selectedLicenseName = "Unknown"
+
+            if selectedLicenseSPDXIdentifier == "I don't know":
+                selectedLicenseSPDXIdentifier = "Unknown"
 
             # Collect the standard license text details if required
             if selectedLicenseId in common_licenses.commonLicenses.keys():
@@ -114,10 +124,6 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                 # This is not a license where the templatize text will be used
                 isCommonLicense = False
 
-
-
-            if selectedLicenseName == "I don't know":
-                selectedLicenseName = "Unknown"
 
             # Store the data for the inventory item for reporting
             inventoryData[inventoryID] = {
