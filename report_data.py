@@ -342,7 +342,14 @@ def process_notices(gatheredNotices):
                     HTMLFreeNotices[componentVersionID][licenseID] = dedupedNotices[componentVersionID][licenseID]
         else:
             # There is just a single license so use it
-            HTMLFreeNotices[componentVersionID] = dedupedNotices[componentVersionID]
+            licenseID = list(dedupedNotices[componentVersionID].keys())[0]
+            if dedupedNotices[componentVersionID][licenseID]["filePath"].endswith(tuple(["html", "htm"])):
+                logger.info("        For CompVerID: %s licenesID: %s -- Only HTML file exists" %(componentVersionID, licenseID))
+                HTMLFreeNotices[componentVersionID][licenseID] = {}
+                HTMLFreeNotices[componentVersionID] = dedupedNotices[componentVersionID]
+                HTMLFreeNotices[componentVersionID][licenseID]["licenseText"] = "*** The only available notices for this component is in HTML format.  Manual review required. ***"
+            else:
+                HTMLFreeNotices[componentVersionID] = dedupedNotices[componentVersionID]
 
 
     logger.info("        Exiting process_notices")
