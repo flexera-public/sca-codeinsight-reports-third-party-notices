@@ -115,6 +115,10 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                 isCommonLicense = False
 
 
+
+            if selectedLicenseName == "I don't know":
+                selectedLicenseName = "Unknown"
+
             # Store the data for the inventory item for reporting
             inventoryData[inventoryID] = {
                 "componentName" : componentName,
