@@ -170,7 +170,11 @@ def generate_html_report(reportData):
         noticesText = inventoryItems[inventoryItemID]["noticesText"]
         componentUrl = inventoryItems[inventoryItemID]["componentUrl"]
 
-        html_ptr.write("        <h5 id=%s>%s  %s  (%s)</h5>\n" %(inventoryItemID, componentName, componentVersionName, selectedLicenseSPDXIdentifier))
+        if componentVersionName != "N/A":
+            html_ptr.write("        <h5 id=%s>%s  %s  (%s)</h5>\n" %(inventoryItemID, componentName, componentVersionName, selectedLicenseSPDXIdentifier))
+        else:
+            html_ptr.write("        <h5 id=%s>%s (%s)</h5>\n" %(inventoryItemID, componentName, selectedLicenseSPDXIdentifier))
+
 
         html_ptr.write("        <div class=\"container-fluid\">\n")
         html_ptr.write("            <a href='%s' target='_blank'>%s</a><br>\n" %(componentUrl, componentUrl))
