@@ -70,6 +70,12 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
         
         # Cycle through the inventory to get the required data
         for inventoryItem in projectDetails["inventoryItems"]:
+            
+            # Is this a component?
+            if inventoryItem["type"] != "Component":
+                continue
+
+
             inventoryID = inventoryItem["id"]
             componentName = inventoryItem["componentName"]
             componentVersionName = inventoryItem["componentVersionName"]
