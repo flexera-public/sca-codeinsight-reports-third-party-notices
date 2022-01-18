@@ -90,7 +90,7 @@ def gather_data_for_report(configData, projectID, authToken, reportName, reportO
 
             logger.debug("        Processing license details for '%s - %s  (%s)'" %(componentName, componentVersionName, inventoryID))
             
-            componentVersionId = str(inventoryItem["componentVersionId"])
+            componentVersionId = inventoryItem["componentVersionId"]
             selectedLicenseSPDXIdentifier = inventoryItem["selectedLicenseSPDXIdentifier"]
             selectedLicenseId = str(inventoryItem["selectedLicenseId"])
             url = inventoryItem["url"]
@@ -150,13 +150,15 @@ def gather_data_for_report(configData, projectID, authToken, reportName, reportO
     # With the full inventory list (including child projects) get gathered notices for each item in a bulk call
     if len(componentVersionLicenses):
 
+        # Create a list of strings of the component version IDs
         componentVersionsIDList = list(componentVersionLicenses.keys())
+        componentVersionsIDList = [str(id) for id in componentVersionsIDList]
         componentVersionsIds = ", ".join(componentVersionsIDList)
         # Get auth token and notices for supplied list of component version IDs
-        authToken = CodeInsight_RESTAPIs.data_access.authentication.token.generate_service_account_bearer_token(dataAuthServerURL, clientId, clientToken)   
+        dataServicesAuthToken = CodeInsight_RESTAPIs.data_access.authentication.token.generate_service_account_bearer_token(dataAuthServerURL, clientId, clientToken)   
 
-        logger.info("    Collect notices for %s component versions IDs" %len(componentVersionLicenses))
-        gatheredNotices = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServerURL, authToken, componentVersionsIds)
+        logger.info("    Collect notices for %s component versions IDs" %len(componentVersionsIDList))
+        gatheredNotices = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServerURL, dataServicesAuthToken, componentVersionsIds)
         logger.info("    Notices collected")
 
         # Any issues collecting the notice data?
@@ -167,7 +169,6 @@ def gather_data_for_report(configData, projectID, authToken, reportName, reportO
                 logger.debug("Total number of collected notices obtained: %s" %len(gatheredNotices))
 
         processedNotices = process_notices(gatheredNotices)
-
 
     # Update each inventory notice text for the report with the gathered notices or the template notices
     for inventoryID in inventoryData:
