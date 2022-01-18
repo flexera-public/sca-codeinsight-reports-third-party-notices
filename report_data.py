@@ -16,7 +16,6 @@ import CodeInsight_RESTAPIs.license.license_lookup
 import CodeInsight_RESTAPIs.inventory.update_inventory
 import CodeInsight_RESTAPIs.data_access.authentication.token
 import CodeInsight_RESTAPIs.data_access.license.license_texts
-import API_license_text
 import common_licenses
 
 logger = logging.getLogger(__name__)
