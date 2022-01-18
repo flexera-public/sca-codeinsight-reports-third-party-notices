@@ -125,10 +125,11 @@ def generate_html_report(reportData):
     for inventoryItemID in inventoryItems:
         componentName = inventoryItems[inventoryItemID]["componentName"]
         componentVersionName = inventoryItems[inventoryItemID]["componentVersionName"]
+        componentVersionId = inventoryItems[inventoryItemID]["componentVersionId"]
         selectedLicenseSPDXIdentifier = inventoryItems[inventoryItemID]["selectedLicenseSPDXIdentifier"]
         
         # Link to the license details below using the inventory ID
-        html_ptr.write("            <a href='#%s'>%s  %s  (%s)</a><br>\n" %(inventoryItemID, componentName, componentVersionName, selectedLicenseSPDXIdentifier))
+        html_ptr.write("            <a href='#%s'>%s  %s  (%s)</a> <!-- CompVerID:  %s --><br>\n" %(inventoryItemID, componentName, componentVersionName, selectedLicenseSPDXIdentifier, componentVersionId))
 
     html_ptr.write("        </div>\n")
 
@@ -163,6 +164,8 @@ def generate_html_report(reportData):
     for inventoryItemID in inventoryItems:
         componentName = inventoryItems[inventoryItemID]["componentName"]
         componentVersionName = inventoryItems[inventoryItemID]["componentVersionName"]
+        componentVersionId = inventoryItems[inventoryItemID]["componentVersionId"]
+
 
         logger.info("        Processing inventory item: '%s - %s  (%s)'" %(componentName, componentVersionName, inventoryItemID))
         selectedLicenseSPDXIdentifier = inventoryItems[inventoryItemID]["selectedLicenseSPDXIdentifier"]
@@ -170,7 +173,7 @@ def generate_html_report(reportData):
         noticesText = inventoryItems[inventoryItemID]["noticesText"]
         componentUrl = inventoryItems[inventoryItemID]["componentUrl"]
 
-        html_ptr.write("        <h5 id=%s>%s  %s  (%s)</h5>\n" %(inventoryItemID, componentName, componentVersionName, selectedLicenseSPDXIdentifier))
+        html_ptr.write("        <h5 id=%s>%s  %s  (%s)</h5>  <!-- CompVerID:  %s -->\n" %(inventoryItemID, componentName, componentVersionName, selectedLicenseSPDXIdentifier, componentVersionId))
         html_ptr.write("        <div class=\"container-fluid\">\n")
         html_ptr.write("            <a href='%s' target='_blank'>%s</a><br>\n" %(componentUrl, componentUrl))
         html_ptr.write("            <p>\n")
