@@ -153,12 +153,29 @@ def gather_data_for_report(configData, projectID, authToken, reportName, reportO
         # Create a list of strings of the component version IDs
         componentVersionsIDList = list(componentVersionLicenses.keys())
         componentVersionsIDList = [str(id) for id in componentVersionsIDList]
-        componentVersionsIds = ", ".join(componentVersionsIDList)
+
+        numComponentVersionIds = len(componentVersionsIDList)
         # Get auth token and notices for supplied list of component version IDs
         dataServicesAuthToken = CodeInsight_RESTAPIs.data_access.authentication.token.generate_service_account_bearer_token(dataAuthServerURL, clientId, clientToken)   
 
-        logger.info("    Collect notices for %s component versions IDs" %len(componentVersionsIDList))
-        gatheredNotices = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServerURL, dataServicesAuthToken, componentVersionsIds)
+        logger.info("    Collect notices for %s component versions IDs" %numComponentVersionIds)
+        
+        # The API supports a call with a max of 25 IDs at a time
+        maxNumIDs = 25
+        if numComponentVersionIds > maxNumIDs:
+            gatheredNotices = []
+
+            for index in range(0, numComponentVersionIds, maxNumIDs):
+                componentVersionsIds = ", ".join(componentVersionsIDList[index:index+maxNumIDs])
+                currentNoticesSet = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServerURL, dataServicesAuthToken, componentVersionsIds)
+                # Were there any notices pulled back at all?
+                if currentNoticesSet:
+                    gatheredNotices += currentNoticesSet
+
+        else:
+            componentVersionsIds = ", ".join(componentVersionsIDList)
+            gatheredNotices = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServerURL, dataServicesAuthToken, componentVersionsIds)
+
         logger.info("    Notices collected")
 
         # Any issues collecting the notice data?
