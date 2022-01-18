@@ -36,7 +36,7 @@ def gather_data_for_report(configData, projectID, authToken, reportName, reportO
 
     projectList = [] # List to hold parent/child details for report
     inventoryData = {}  # Create a dictionary containing the inventory data using inventoryID as keys
-    componentVersionLicenses = {}
+    componentVersionLicenses = []
     commonNotices = {}
     emptyNotices = ["", "N/A"]
 
@@ -75,7 +75,8 @@ def gather_data_for_report(configData, projectID, authToken, reportName, reportO
         
         # Cycle through the inventory to get the required data
         for inventoryItem in projectDetails["inventoryItems"]:
-            
+            componentVersionId = inventoryItem["componentVersionId"]
+
             # Is this a component?
             if inventoryItem["type"] != "Component":
                 continue
@@ -87,21 +88,23 @@ def gather_data_for_report(configData, projectID, authToken, reportName, reportO
             if componentVersionName == "N/A":
                 componentVersionName = ""
 
-
             logger.debug("        Processing license details for '%s - %s  (%s)'" %(componentName, componentVersionName, inventoryID))
             
             componentVersionId = inventoryItem["componentVersionId"]
             selectedLicenseSPDXIdentifier = inventoryItem["selectedLicenseSPDXIdentifier"]
             selectedLicenseId = str(inventoryItem["selectedLicenseId"])
-            url = inventoryItem["url"]
+            url = inventoryItem["url"]  # TODO Which URL should be used
             componentUrl = inventoryItem["componentUrl"]
             noticesText = inventoryItem["noticesText"]
             selectedLicenseName = inventoryItem["selectedLicenseName"]
             selectedLicenseUrl = inventoryItem["selectedLicenseUrl"]
 
-            # TODO Which URL should be used
+
+            # If this is a specific component and not custom add it to the list
             if componentVersionId != "N/A":
-                componentVersionLicenses[componentVersionId] = componentVersionLicenses
+                # Sep stament to avoid issue with int vs str
+                if componentVersionId < 1000000000:
+                    componentVersionLicenses.append(componentVersionId)
 
             # Clean up license details for report
             if selectedLicenseName == "I don't know":
@@ -144,15 +147,13 @@ def gather_data_for_report(configData, projectID, authToken, reportName, reportO
                 "noticesText" : noticesText
             }
 
-    logger.debug("Total number of components within inventory: %s" %len(componentVersionLicenses))
-    
+    logger.debug("Total number of components within inventory: %s" %len(componentVersionLicenses)) 
 
     # With the full inventory list (including child projects) get gathered notices for each item in a bulk call
     if len(componentVersionLicenses):
 
         # Create a list of strings of the component version IDs
-        componentVersionsIDList = list(componentVersionLicenses.keys())
-        componentVersionsIDList = [str(id) for id in componentVersionsIDList]
+        componentVersionsIDList = [str(id) for id in componentVersionLicenses]
 
         numComponentVersionIds = len(componentVersionsIDList)
         # Get auth token and notices for supplied list of component version IDs
