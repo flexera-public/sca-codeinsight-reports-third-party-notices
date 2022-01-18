@@ -184,7 +184,7 @@ def generate_html_report(reportData):
             html_ptr.write("            For the full text of the %s license, see <a href='#%s'>%s  (%s)</a>\n" %(selectedLicenseSPDXIdentifier, selectedLicenseSPDXIdentifier.replace(" ", "") ,selectedLicenseName, selectedLicenseSPDXIdentifier))
         else:
             logger.info("            Non common license so use popluated value")
-            html_ptr.write("            <pre>%s</pre><br>\n" %noticesText)    
+            html_ptr.write("            <pre>%s</pre>\n" %noticesText)    
 
         html_ptr.write("        </div>\n") 
         html_ptr.write("        <p>\n") 
