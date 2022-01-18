@@ -14,16 +14,22 @@ import CodeInsight_RESTAPIs.project.get_child_projects
 import CodeInsight_RESTAPIs.project.get_project_inventory
 import CodeInsight_RESTAPIs.license.license_lookup
 import CodeInsight_RESTAPIs.inventory.update_inventory
+import CodeInsight_RESTAPIs.data_access.authentication.token
+import CodeInsight_RESTAPIs.data_access.license.license_texts
 import API_license_text
 import common_licenses
 
 logger = logging.getLogger(__name__)
 
-
-
 #-------------------------------------------------------------------#
-def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOptions):
+def gather_data_for_report(configData, projectID, authToken, reportName, reportOptions):
     logger.info("Entering gather_data_for_report")
+
+    baseURL = configData["core.server.url"]
+    dataAuthServerURL = configData["data.server.auth.url"]
+    clientId = configData["data.server.client.id"]
+    clientToken = configData["data.server.client.token"]
+    dataServerURL = configData["data.server.url"]
 
     # Parse report options
     includeChildProjects = reportOptions["includeChildProjects"]  # True/False
@@ -85,7 +91,7 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
             logger.debug("        Processing license details for '%s - %s  (%s)'" %(componentName, componentVersionName, inventoryID))
             
-            componentVersionId = inventoryItem["componentVersionId"]
+            componentVersionId = str(inventoryItem["componentVersionId"])
             selectedLicenseSPDXIdentifier = inventoryItem["selectedLicenseSPDXIdentifier"]
             selectedLicenseId = str(inventoryItem["selectedLicenseId"])
             url = inventoryItem["url"]
@@ -144,7 +150,15 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
     # With the full inventory list (including child projects) get gathered notices for each item in a bulk call
     if len(componentVersionLicenses):
-        gatheredNotices = API_license_text.get_license_text(componentVersionLicenses)
+
+        componentVersionsIDList = list(componentVersionLicenses.keys())
+        componentVersionsIds = ", ".join(componentVersionsIDList)
+        # Get auth token and notices for supplied list of component version IDs
+        authToken = CodeInsight_RESTAPIs.data_access.authentication.token.generate_service_account_bearer_token(dataAuthServerURL, clientId, clientToken)   
+
+        logger.info("    Collect notices for %s component versions IDs" %len(componentVersionLicenses))
+        gatheredNotices = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServerURL, authToken, componentVersionsIds)
+        logger.info("    Notices collected")
 
         # Any issues collecting the notice data?
         try:
