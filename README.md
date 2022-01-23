@@ -1,17 +1,14 @@
 # sca-codeinsight-reports-third-party-notices
 
-The `sca-codeinsight-reports-third-party-notices` repository is a example report for Revenera's Code Insight product. This report allows a user to get a quick high level summary of the inventory items within a project. This report will take into account any child projects (recursively) and display a hierarchy chart of the project structure.
+The `sca-codeinsight-reports-third-party-notices` repository is a example report for Revenera's Code Insight product. This report allows a user to get a quick high level summary of the inventory items within a project. This report will take into account any child projects (recursively).
 
 This repository utilizes the following via CDN for the creation of the report artifacts.
 
 -  [Bootstrap](https://getbootstrap.com/)
--  [DataTables](https://datatables.net/)
--  [jsTree](https://www.jstree.com/)
 
 ## Prerequisites
 
 **Code Insight Release Requirements**
-
 
 |Repository Tag | Minimum Code Insight Release |
 |--|--|
@@ -41,13 +38,21 @@ The required python modules can be installed with the use of the [requirements.t
 
 	pip install -r requirements.txt
 
+**Data Services Requirement**
+
+The execution of this report will require external network access in order to acquire the specific notice information for each item within the project invenetory.  
+
 ## Configuration and Report Registration
  
-For registration purposes the file **server_properties.json** should be created and located in the **$CODEINSIGHT_INSTALLDIR/custom_report_scripts/** directory.  This file contains a json with information required to register the report within Code Insight as shown  here:
+For registration, as well as data services purposes, the file **server_properties.json** should be created and located in the **$CODEINSIGHT_INSTALLDIR/custom_report_scripts/** directory.  This file contains a json with information required to register the report within Code Insight.  This information is also used to access the notices from the data services.   The file can be populated as shown here:
 
 >     {
->         "core.server.url": "http://localhost:8888" ,
->         "core.server.token" : "Admin authorization token from Code Insight"
+>         "core.server.url": "FQDN or IP Addess for Code Insight server" ,
+>         "core.server.token" : "Admin authorization token from Code Insight",
+		  "data.server.auth.url" : "Contact Revenera for value,
+		  "data.server.url" : "Contact Revenera for value",
+		  "data.server.client.id" : "Contact Revenera for value",
+		  "data.server.client.token" : "Contact Revenera for value"
 >     }
 
 The value for core.server.url is also used within [create_report.py](create_report.py) for any project or inventory based links back to the Code Insight server within a generated report.
@@ -59,6 +64,8 @@ If the common **server_properties.json** files is not used then the information 
 [create_report.py](create_report.py)  -  Update the **baseURL** value. This URL is used for links within the reports.
 
 Report option default values can also be specified in [registration.py](registration.py) within the reportOptions dictionaries.
+
+
 
 ### Registering the Report
 
@@ -94,9 +101,11 @@ The Code Insight Custom Report Framework will provide the following to the custo
 For this example report these three items are passed on to a batch or sh file which will in turn execute a python script. This script will then:
 
 - Collect data for the report via REST API using the Project ID and Authorization Token
-- Take this collected data and generate an html as well as an xlsx file with details about the project inventory
-- The html files will be marked as the *"viewable"* file
-- A zip file will be created containing the html which will be the *"downloadable"* file.
+- Take this collected data and generate the following:
+  - An html version of the third party notices file
+  - A text version of the third party notices file
+- The html file will be marked as the *"viewable"* file
+- A zip file will be created containing all files which will be the *"downloadable"* file.
 - Create a zip file with the viewable file and the downloadable file
 - Upload this combined zip file to Code Insight via REST API
 - Delete the report artifacts that were created as the script ran
