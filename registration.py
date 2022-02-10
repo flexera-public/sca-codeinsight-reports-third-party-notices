@@ -71,7 +71,7 @@ reportOptions = []
 #
 reportOption = {}
 reportOption["name"] = "includeChildProjects"
-reportOption["label"] = "Include child project data (True/False)"
+reportOption["label"] = "Include child project data? (True/False)"
 reportOption["description"] = "Should the report include data from child projects? <b>(True/False)</b>"
 reportOption["type"] = "string"
 reportOption["defaultValue"] = "True"
@@ -81,7 +81,7 @@ reportOptions.append(reportOption)
 
 reportOption = {}
 reportOption["name"] = "overrideExistingNoticesText"
-reportOption["label"] = "Override any exiting 'Notices Text'"
+reportOption["label"] = "Override any exiting 'Notices Text? (True/False)"
 reportOption["description"] = "If there is already existing notices data should it be replaced with what was gathered? <b>(True/False)</b>"
 reportOption["type"] = "string"
 reportOption["defaultValue"] = "True"
