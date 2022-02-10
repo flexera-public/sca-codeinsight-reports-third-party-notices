@@ -14,21 +14,16 @@ import CodeInsight_RESTAPIs.project.get_child_projects
 import CodeInsight_RESTAPIs.project.get_project_inventory
 import CodeInsight_RESTAPIs.license.license_lookup
 import CodeInsight_RESTAPIs.inventory.update_inventory
-import CodeInsight_RESTAPIs.data_access.authentication.token
+import CodeInsight_RESTAPIs.data_access.credentials.server_details
+import CodeInsight_RESTAPIs.data_access.credentials.authorization
 import CodeInsight_RESTAPIs.data_access.license.license_texts
 import common_licenses
 
 logger = logging.getLogger(__name__)
 
 #-------------------------------------------------------------------#
-def gather_data_for_report(configData, projectID, authToken, reportName, reportOptions):
+def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOptions):
     logger.info("Entering gather_data_for_report")
-
-    baseURL = configData["core.server.url"]
-    dataAuthServerURL = configData["data.server.auth.url"]
-    clientId = configData["data.server.client.id"]
-    clientToken = configData["data.server.client.token"]
-    dataServerURL = configData["data.server.url"]
 
     # Parse report options
     includeChildProjects = reportOptions["includeChildProjects"]  # True/False
@@ -157,7 +152,9 @@ def gather_data_for_report(configData, projectID, authToken, reportName, reportO
 
         numComponentVersionIds = len(componentVersionsIDList)
         # Get auth token and notices for supplied list of component version IDs
-        dataServicesAuthToken = CodeInsight_RESTAPIs.data_access.authentication.token.generate_service_account_bearer_token(dataAuthServerURL, clientId, clientToken)   
+        dataServicesURL = CodeInsight_RESTAPIs.data_access.credentials.server_details.get_data_service_url(baseURL, authToken)
+        dataServicesAuthDetails = CodeInsight_RESTAPIs.data_access.credentials.authorization.get_data_service_token(baseURL, authToken)
+        dataServicesAuthToken = dataServicesAuthDetails["access_token"]
 
         logger.info("    Collect notices for %s component versions IDs" %numComponentVersionIds)
         
@@ -168,23 +165,30 @@ def gather_data_for_report(configData, projectID, authToken, reportName, reportO
 
             for index in range(0, numComponentVersionIds, maxNumIDs):
                 componentVersionsIds = ", ".join(componentVersionsIDList[index:index+maxNumIDs])
-                currentNoticesSet = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServerURL, dataServicesAuthToken, componentVersionsIds)
+                currentNoticesSet = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServicesURL, dataServicesAuthToken, componentVersionsIds)
                 # Were there any notices pulled back at all?
                 if currentNoticesSet:
                     gatheredNotices += currentNoticesSet
 
         else:
             componentVersionsIds = ", ".join(componentVersionsIDList)
-            gatheredNotices = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServerURL, dataServicesAuthToken, componentVersionsIds)
-
-        logger.info("    Notices collected")
+            gatheredNotices = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServicesURL, dataServicesAuthToken, componentVersionsIds)
 
         # Any issues collecting the notice data?
         try:
             if "errorMsg" in gatheredNotices.keys():
                 return gatheredNotices
         except:
-                logger.debug("Total number of collected notices obtained: %s" %len(gatheredNotices))
+            logger.debug("No error gathering notices")
+
+        # Was there any notice data?
+        try:
+            len(gatheredNotices)
+            logger.debug("Total number of collected notices obtained: %s" %len(gatheredNotices))
+        except:
+            logger.debug("No notice data gathered. Creating empty list")
+            gatheredNotices = []
+
 
         processedNotices = process_notices(gatheredNotices)
 

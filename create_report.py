@@ -114,7 +114,7 @@ def main():
         print("    *** ERROR  ***  Error found validating report options")
     else:
         # No error with provided optoins so collect project/inventory data
-        reportData = report_data.gather_data_for_report(configData, projectID, authToken, reportName, reportOptions)
+        reportData = report_data.gather_data_for_report(baseURL, projectID, authToken, reportName, reportOptions)
 
         # Where there any issues encountered while collecting the data?
         if "errorMsg" in reportData.keys():
