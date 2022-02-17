@@ -40,19 +40,17 @@ The required python modules can be installed with the use of the [requirements.t
 
 **Data Services Requirement**
 
-The execution of this report will require external network access in order to acquire the specific notice information for each item within the project invenetory.  
+The execution of this report will require external network access in order to obtain the specific notice information for each item within the project invenetory.  The specific URLs required in addition to the default URLs for standard Code Insight usage are:
+- https://login.flexera.com 
+- https://sca-api.revenera.com 
 
 ## Configuration and Report Registration
  
-For registration, as well as data services purposes, the file **server_properties.json** should be created and located in the **$CODEINSIGHT_INSTALLDIR/custom_report_scripts/** directory.  This file contains a json with information required to register the report within Code Insight.  This information is also used to access the notices from the data services.   The file can be populated as shown here:
+For registration, as well as data services purposes, the file **server_properties.json** should be created and located in the **$CODEINSIGHT_INSTALLDIR/custom_report_scripts/** directory.  This file contains a json with information required to register the report within Code Insight.   The file can be populated as shown here:
 
 >     {
 >         "core.server.url": "FQDN or IP Addess for Code Insight server" ,
 >         "core.server.token" : "Admin authorization token from Code Insight",
-		  "data.server.auth.url" : "Contact Revenera for value,
-		  "data.server.url" : "Contact Revenera for value",
-		  "data.server.client.id" : "Contact Revenera for value",
-		  "data.server.client.token" : "Contact Revenera for value"
 >     }
 
 The value for core.server.url is also used within [create_report.py](create_report.py) for any project or inventory based links back to the Code Insight server within a generated report.
