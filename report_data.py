@@ -191,6 +191,10 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
 
         processedNotices = process_notices(gatheredNotices)
+    else:
+        # There was no componentVersionID to gather data for so create an empty list
+        processedNotices = [] 
+        
 
     # Update each inventory notice text for the report with the gathered notices or the template notices
     for inventoryID in inventoryData:
