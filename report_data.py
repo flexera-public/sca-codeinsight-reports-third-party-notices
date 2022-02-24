@@ -210,15 +210,26 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
         # Determine if the the Notices Text needs to be updated
         if isCommonLicense:
             logger.info("    Component has common license")
+            stockNoticeText = commonNotices[selectedLicenseId]["reportNoticeText"]
+
             # Is there information already there than should be used?
             if originalNoticesText in emptyNotices:
                 logger.info("        Using stock/template license text")
-                updateNoticesText = commonNotices[selectedLicenseId]["reportNoticeText"]
+                updateNoticesText = stockNoticeText
+                # Update the notices text field to the stock notices text (convert to heml for display)
+                CodeInsight_RESTAPIs.inventory.update_inventory.update_inventory_notices_text(inventoryID, stockNoticeText.replace("\n", "<br>"), baseURL, authToken)
+              
             else:
-                # Since there is custom data make sure to use it and not consider it a common license
-                logger.info("        Using existing license text")
-                updateNoticesText = originalNoticesText
-                inventoryData[inventoryID]["isCommonLicense"] = False
+                # Since there is data already let's see if it is the stock text populated on a previous run
+                if originalNoticesText.replace("<br>", "\n").replace('\\"', '"') == stockNoticeText:
+                    logger.debug("        No action required since stock text in notices field ")
+                else:
+                    # Since there is custom data make sure to use it and not consider it a common license
+                    logger.info("        Using existing license text")
+                    inventoryData[inventoryID]["isCommonLicense"] = False
+
+                # Just use the stock notice text                     
+                updateNoticesText = stockNoticeText
 
         elif componentVersionId in processedNotices: 
             # Replace any data that is already there
@@ -243,7 +254,7 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                     else:
                         uniqueLicenseText = componentNotices[uniqueLicenseID]["licenseText"]
 
-                    updateNoticesText += uniqueLicenseText + "\n\n====================\n\n"
+                    updateNoticesText += uniqueLicenseText + "\n\n<-++++++++++++++++++++++++++++++++++++->\n\n"
 
                 # Can we update the notices text to be specific based on the slected license for the inventory item?
 
@@ -260,16 +271,17 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                     else:
                         licenseTextByType[licenseType] = [licenseText]
 
-                # Can we match data to the selected license for the inventory item?
-                for licenseType in licenseTextByType:
-                    if licenseType in selectedLicenseSPDXIdentifier:
-                        logger.info("            Override notice text using SDPX Identifier for inventory item")
-                        updateNoticesText = "\n\n====================\n\n".join(licenseTextByType[licenseType])
+                # # Can we match data to the selected license for the inventory item?
+                # for licenseType in licenseTextByType:
+                #     if licenseType in selectedLicenseSPDXIdentifier:
+                #         logger.info("            Override notice text using SDPX Identifier for inventory item")
+                #         updateNoticesText = "\n\n====================\n\n".join(licenseTextByType[licenseType])
     
 
                 logger.info("        Update the notices field for the inventory item")
                 if originalNoticesText != updateNoticesText:
-                    CodeInsight_RESTAPIs.inventory.update_inventory.update_inventory_notices_text(inventoryID, updateNoticesText, baseURL, authToken)
+                    # Write the value back to the notices field and clear up and new lines for html
+                    CodeInsight_RESTAPIs.inventory.update_inventory.update_inventory_notices_text(inventoryID, updateNoticesText.replace("\n", "<br>"), baseURL, authToken)
                     # TODO what if not analsyst does this?
                     # print and log message if non analsyst
                 else:
