@@ -195,6 +195,7 @@ def verifyOptions(reportOptions):
     falseOptions = ["false", "f", "no", "n"]
 
     includeChildProjects = reportOptions["includeChildProjects"]
+    includeComponentVersions = reportOptions["includeComponentVersions"]
     overrideExistingNoticesText = reportOptions["overrideExistingNoticesText"]
 
 
@@ -204,6 +205,13 @@ def verifyOptions(reportOptions):
         reportOptions["includeChildProjects"] = False
     else:
         reportOptions["errorMsg"].append("Invalid option for including child projects: <b>%s</b>.  Valid options are <b>True/False</b>" %includeChildProjects)
+
+    if includeComponentVersions.lower() in trueOptions:
+        reportOptions["includeComponentVersions"] = True
+    elif includeComponentVersions.lower() in falseOptions:
+        reportOptions["includeComponentVersions"] = False
+    else:
+        reportOptions["errorMsg"].append("Invalid option for including component versions: <b>%s</b>.  Valid options are <b>True/False</b>" %includeComponentVersions)
 
 
     if overrideExistingNoticesText.lower() in trueOptions:

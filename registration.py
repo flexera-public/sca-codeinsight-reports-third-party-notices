@@ -80,13 +80,24 @@ reportOption["order"] = "1"
 reportOptions.append(reportOption)
 
 reportOption = {}
+reportOption["name"] = "includeComponentVersions"
+reportOption["label"] = "Include versions numbers in report? (True/False)"
+reportOption["description"] = "Should the report include component version numbers? <b>(True/False)</b>"
+reportOption["type"] = "string"
+reportOption["defaultValue"] = "True"
+reportOption["required"] = "true"
+reportOption["order"] = "2"
+reportOptions.append(reportOption)
+
+
+reportOption = {}
 reportOption["name"] = "overrideExistingNoticesText"
 reportOption["label"] = "Override any exiting 'Notices Text? (True/False)"
 reportOption["description"] = "If there is already existing notices data should it be replaced with what was gathered? <b>(True/False)</b>"
 reportOption["type"] = "string"
 reportOption["defaultValue"] = "True"
 reportOption["required"] = "true"
-reportOption["order"] = "2"
+reportOption["order"] = "3"
 reportOptions.append(reportOption)
 
 #####################################################################################################

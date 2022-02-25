@@ -27,6 +27,7 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
     # Parse report options
     includeChildProjects = reportOptions["includeChildProjects"]  # True/False
+    includeComponentVersions = reportOptions["includeComponentVersions"]  # True/False
     overrideExistingNoticesText = reportOptions["overrideExistingNoticesText"]  # True/False
 
     projectList = [] # List to hold parent/child details for report
@@ -78,9 +79,14 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
             inventoryID = inventoryItem["id"]
             componentName = inventoryItem["componentName"]
-            componentVersionName = inventoryItem["componentVersionName"]
-            
-            if componentVersionName == "N/A":
+
+            # Will the version numbers for the components be displayed in the report?
+            if includeComponentVersions:
+                componentVersionName = inventoryItem["componentVersionName"]
+                
+                if componentVersionName == "N/A":
+                    componentVersionName = ""
+            else:
                 componentVersionName = ""
 
             logger.debug("        Processing license details for '%s - %s  (%s)'" %(componentName, componentVersionName, inventoryID))
