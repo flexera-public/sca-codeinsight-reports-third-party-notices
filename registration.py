@@ -89,7 +89,6 @@ reportOption["required"] = "true"
 reportOption["order"] = "2"
 reportOptions.append(reportOption)
 
-
 reportOption = {}
 reportOption["name"] = "overrideExistingNoticesText"
 reportOption["label"] = "Override any exiting 'Notices Text? (True/False)"
