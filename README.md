@@ -1,6 +1,11 @@
 # sca-codeinsight-reports-third-party-notices
 
-The `sca-codeinsight-reports-third-party-notices` repository is a example report for Revenera's Code Insight product. This report allows a user to get a quick high level summary of the inventory items within a project. This report will take into account any child projects (recursively).
+The `sca-codeinsight-reports-third-party-notices` repository is a report for Revenera's Code Insight product. This report allows a user to generate a Third Party Notices report to satisfy the attribution requirement of open source licenses. This report will automatically include licenses with attribution data where available.  The Notice Text field within the inventory item will also be updated with the attributed license text when possible based on report options.  When multiple license are found all variants will be included and manual inspection and modification may be required.
+
+This report will take into account any child projects (recursively).
+
+Please note that currently this report uses the standard license text for “common” licenses (Apache, EPL, GPL, LGPL, MPL, etc.) that are not based on a license template (BSD, MIT, etc.).
+
 
 This repository utilizes the following via CDN for the creation of the report artifacts.
 
@@ -88,6 +93,7 @@ This report is executed directly from within Revenera's Code Insight product. Fr
 The following report options can be set once the report generation has been initiated:
 
 - Including child projects (True/False) - Determine if child project data will be included or not.
+- Include version numbers in artifacts (True/False) - Determine if the version number for a component will be added to any report aritfacts.
 - Replace Existing Notices Text Field Value (True/False) - Replace existing "Notices Text" field with gathered notices if already populated
 
 The Code Insight Custom Report Framework will provide the following to the custom report when initiated:
