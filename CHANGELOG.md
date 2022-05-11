@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2022-05-11
+### Fixed
+- Handle case when no license text is acquired
+- Small logging change to highligh components vs licenses collected
+
 ## [1.0.4] - 2022-02-24
 ### Added
 - Option to supress inventory version
