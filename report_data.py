@@ -148,7 +148,8 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
                 "noticesText" : noticesText
             }
 
-    logger.debug("Total number of components within inventory: %s" %len(componentVersionLicenses)) 
+    logger.debug("Total number of components within inventory: %s" %len(inventoryData)) 
+    logger.debug("Total number of components with possible license text: %s" %len(componentVersionLicenses)) 
 
     # With the full inventory list (including child projects) get gathered notices for each item in a bulk call
     if len(componentVersionLicenses):
@@ -388,12 +389,18 @@ def process_notices(gatheredNotices):
         if licenseID not in dedupedNotices[componentVersionID]:
             dedupedNotices[componentVersionID][licenseID] = {}
             dedupedNotices[componentVersionID][licenseID] ["filePath"] = notice["filePath"]
-            dedupedNotices[componentVersionID][licenseID] ["licenseText"] = notice["text"]
+
+            if "text" in notice:
+                licenseText = notice["text"]
+            else:
+                licenseText = ""
+
+            dedupedNotices[componentVersionID][licenseID] ["licenseText"] = licenseText
 
             # Can a determination as to what license a specfic text is based on 
             # license file name or specific contents of the text?
 
-            licenseType = determine_licenses(notice["filePath"], notice["text"] )
+            licenseType = determine_licenses(notice["filePath"], licenseText )
 
             logger.info("        For CompVerID: %s licenesID: %s -- Determined licenseType: %s" %(componentVersionID, licenseID, licenseType))
             
