@@ -217,26 +217,15 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
         # Determine if the the Notices Text needs to be updated
         if isCommonLicense:
             logger.info("    Component has common license")
-            stockNoticeText = commonNotices[selectedLicenseId]["reportNoticeText"]
 
-            # Is there information already there than should be used?
-            if originalNoticesText in emptyNotices:
-                logger.info("        Using stock/template license text")
-                updateNoticesText = stockNoticeText
-                # Update the notices text field to the stock notices text (convert to heml for display)
-                CodeInsight_RESTAPIs.inventory.update_inventory.update_inventory_notices_text(inventoryID, stockNoticeText.replace("\n", "<br>"), baseURL, authToken)
-              
+            # Is there information in the notice text field that should be used as well?
+            if originalNoticesText not in emptyNotices:
+                logger.info("        Capture contents for display")
+                updateNoticesText = originalNoticesText
+            
             else:
-                # Since there is data already let's see if it is the stock text populated on a previous run
-                if originalNoticesText.replace("<br>", "\n").replace('\\"', '"') == stockNoticeText:
-                    logger.debug("        No action required since stock text in notices field ")
-                else:
-                    # Since there is custom data make sure to use it and not consider it a common license
-                    logger.info("        Using existing license text")
-                    inventoryData[inventoryID]["isCommonLicense"] = False
-
                 # Just use the stock notice text                     
-                updateNoticesText = stockNoticeText
+                updateNoticesText = ""
 
         elif componentVersionId in processedNotices: 
             # Replace any data that is already there

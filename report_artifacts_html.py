@@ -180,6 +180,10 @@ def generate_html_report(reportData):
         html_ptr.write("            <p>\n")
 
         if inventoryItems[inventoryItemID]["isCommonLicense"]:
+
+            if noticesText != "":
+                 html_ptr.write("            <pre>%s</pre>\n" %noticesText)   
+
             logger.info("            Using common license text for %s (%s)" %(selectedLicenseName, selectedLicenseSPDXIdentifier))
             html_ptr.write("            For the full text of the %s license, see <a href='#%s'>%s  (%s)</a>\n" %(selectedLicenseSPDXIdentifier, selectedLicenseSPDXIdentifier.replace(" ", "") ,selectedLicenseName, selectedLicenseSPDXIdentifier))
         else:
