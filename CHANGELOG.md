@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [1.0.7] - 2022-05-23
+### Fixed
+- Registration updates
+
 ## [1.0.6] - 2022-05-18
 ### Changed
 - Change way to handle common license and prepend with notice text details and never update inventory item
