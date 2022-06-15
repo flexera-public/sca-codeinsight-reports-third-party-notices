@@ -17,6 +17,8 @@ import CodeInsight_RESTAPIs.inventory.update_inventory
 import CodeInsight_RESTAPIs.data_access.credentials.server_details
 import CodeInsight_RESTAPIs.data_access.credentials.authorization
 import CodeInsight_RESTAPIs.data_access.license.license_texts
+import CodeInsight_RESTAPIs.project.get_project_information
+
 import common_licenses
 
 logger = logging.getLogger(__name__)
@@ -53,6 +55,12 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
         projectList = create_project_hierarchy(projectHierarchy, projectHierarchy["id"], projectList, baseURL)
     else:
         logger.debug("Child hierarchy disabled")
+
+
+    applicationDetails = determine_application_details(baseURL, projectHierarchy["name"], projectID, authToken)
+    applicationNameVersion = applicationDetails["applicationNameVersion"]
+
+
 
     #  Gather the details for each project and summerize the data
     for project in projectList:
@@ -309,6 +317,7 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
     # Build up the data to return for the
     reportData = {}
     reportData["projectName"] = projectHierarchy["name"]
+    reportData["applicationNameVersion"] = applicationNameVersion
     reportData["reportName"] = reportName
     reportData["projectList"] = projectList
     reportData["inventoryData"] = sortedInventoryItems
@@ -471,3 +480,71 @@ def determine_licenses(filePath, licenseText):
     logger.info("            Exiting determine_licenses")
 
     return licenseType
+
+#----------------------------------------------#
+def determine_application_details(baseURL, projectName, projectID, authToken):
+    logger.debug("Entering determine_application_details.")
+    # Create a application name for the report if the custom fields are populated
+    # Default values
+    applicationName = projectName
+    applicationVersion = ""
+    applicationPublisher = ""
+    applicationDetailsString = ""
+
+    projectInformation = CodeInsight_RESTAPIs.project.get_project_information.get_project_information_summary(baseURL, projectID, authToken)
+
+    # Project level custom fields added in 2022R1
+    if "customFields" in projectInformation:
+        customFields = projectInformation["customFields"]
+
+        # See if the custom project fields were propulated for this project
+        for customField in customFields:
+
+            # Is there the reqired custom field available?
+            if customField["fieldLabel"] == "Application Name":
+                if customField["value"]:
+                    applicationName = customField["value"]
+
+            # Is the custom version field available?
+            if customField["fieldLabel"] == "Application Version":
+                if customField["value"]:
+                    applicationVersion = customField["value"]     
+
+            # Is the custom Publisher field available?
+            if customField["fieldLabel"] == "Application Publisher":
+                if customField["value"]:
+                    applicationPublisher = customField["value"]    
+
+
+
+    # Join the custom values to create the application name for the report artifacts
+    if applicationName != projectName:
+        if applicationVersion != "":
+            applicationNameVersion = applicationName + " - " + applicationVersion
+        else:
+            applicationNameVersion = applicationName
+    else:
+        applicationNameVersion = projectName
+
+    if applicationPublisher != "":
+        applicationDetailsString += "Publisher: " + applicationPublisher + " | "
+
+    # This will either be the project name or the supplied application name
+    applicationDetailsString += "Application: " + applicationName + " | "
+
+    if applicationVersion != "":
+        applicationDetailsString += "Version: " + applicationVersion
+    else:
+        # Rip off the  | from the end of the string if the version was not there
+        applicationDetailsString = applicationDetailsString[:-3]
+
+    applicationDetails = {}
+    applicationDetails["applicationName"] = applicationName
+    applicationDetails["applicationVersion"] = applicationVersion
+    applicationDetails["applicationPublisher"] = applicationPublisher
+    applicationDetails["applicationNameVersion"] = applicationNameVersion
+    applicationDetails["applicationDetailsString"] = applicationDetailsString
+
+    logger.info("    applicationDetails: %s" %applicationDetails)
+
+    return applicationDetails

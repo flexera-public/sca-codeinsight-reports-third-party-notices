@@ -21,6 +21,7 @@ def generate_html_report(reportData):
 
     reportName = reportData["reportName"]
     projectName = reportData["projectName"]
+    applicationNameVersion = reportData["applicationNameVersion"]
     reportFileNameBase = reportData["reportFileNameBase"]
     reportDate = reportData["reportDate"]
     reportTimeStamp =  reportData["reportTimeStamp"]
@@ -105,14 +106,14 @@ def generate_html_report(reportData):
     html_ptr.write("<!-- BEGIN BODY -->\n")  
     html_ptr.write("<div class=\"container-fluid\">\n")
 
-    html_ptr.write("    <H1>%s</H1>\n" %projectName)
+    html_ptr.write("    <H1>%s</H1>\n" %applicationNameVersion)
     html_ptr.write("    <H1>Third-Party Notices</H1>\n")
     html_ptr.write("    <H4>%s</H4>\n" %reportDate)
     html_ptr.write("    <hr>\n")
 
 
     html_ptr.write("    <div class=\"container-fluid\">\n")
-    html_ptr.write("        This document provides notices information for the third-party components used by %s.\n" %projectName)       
+    html_ptr.write("        This document provides notices information for the third-party components used by %s.\n" %applicationNameVersion)       
     html_ptr.write("    </div>\n")   
 
     html_ptr.write("    <p>\n") 
@@ -158,7 +159,7 @@ def generate_html_report(reportData):
 
     html_ptr.write("    <H2>Third-Party Components</H2>\n")
     html_ptr.write("    <div class=\"container-fluid\">\n")
-    html_ptr.write("        The following is a list of the third-party components used by %s.\n" %projectName)
+    html_ptr.write("        The following is a list of the third-party components used by %s.\n" %applicationNameVersion)
     html_ptr.write("        <p>\n") 
 
     for inventoryItemID in inventoryItems:
@@ -199,7 +200,7 @@ def generate_html_report(reportData):
 
     html_ptr.write("<H2>Common Licenses</H2>\n")
     html_ptr.write("<div class=\"container-fluid\">\n")
-    html_ptr.write("This section shows the text of common third-party licenes used by %s\n" %projectName)
+    html_ptr.write("This section shows the text of common third-party licenes used by %s\n" %applicationNameVersion)
     html_ptr.write("<p>") 
 
     # Add section for the common licenes
