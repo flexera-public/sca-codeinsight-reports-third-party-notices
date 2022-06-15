@@ -96,6 +96,13 @@ The following report options can be set once the report generation has been init
 - Include version numbers in artifacts (True/False) - Determine if the version number for a component will be added to any report aritfacts.
 - Replace Existing Notices Text Field Value (True/False) - Replace existing "Notices Text" field with gathered notices if already populated
 
+The generated reports will utilize the following Project Custom Fields if available
+- Application Name
+- Application Version
+
+The above values will be used in place of the **Project Name** for any project references within the generated artifacts to allow users the ability abstract the project name for the the **Third Party Notices** report
+
+
 The Code Insight Custom Report Framework will provide the following to the custom report when initiated:
 
 - Project ID
