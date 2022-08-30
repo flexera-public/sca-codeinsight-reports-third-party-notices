@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2022-08-30
+### Changed
+- Updated RESTAPIs
+- Make False default value for override option
+
 ## [1.1.0] - 2022-06-15
 ### Fixed
 - Use custom project fields for application name/version vs project if available
