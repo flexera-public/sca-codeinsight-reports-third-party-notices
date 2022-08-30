@@ -94,7 +94,7 @@ reportOption["name"] = "overrideExistingNoticesText"
 reportOption["label"] = "Override any exiting 'Notices Text? (True/False)"
 reportOption["description"] = "If there is already existing notices data should it be replaced with what was gathered? <b>(True/False)</b>"
 reportOption["type"] = "string"
-reportOption["defaultValue"] = "True"
+reportOption["defaultValue"] = "False"
 reportOption["required"] = "true"
 reportOption["order"] = "3"
 reportOptions.append(reportOption)
