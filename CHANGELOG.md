@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2023-02-02
+### Changed
+- Logo branding update
+
 ## [1.1.1] - 2022-08-30
 ### Changed
 - Updated RESTAPIs
