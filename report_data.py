@@ -9,6 +9,7 @@ File : report_data.py
 '''
 import logging
 from collections import OrderedDict
+import time
 
 import CodeInsight_RESTAPIs.project.get_child_projects
 import CodeInsight_RESTAPIs.project.get_project_inventory
@@ -171,20 +172,30 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
         dataServicesAuthDetails = CodeInsight_RESTAPIs.data_access.credentials.authorization.get_data_service_token(baseURL, authToken)
         dataServicesAuthToken = dataServicesAuthDetails["access_token"]
 
+        # There is a limit of 100 calls per minute to the API so we need to ensure we don't make too many calls
+        maxCallsPerMinute = 50 # Will go a bit less in case there are other calls required
+
         logger.info("    Collect notices for %s component versions IDs" %numComponentVersionIds)
         
         # The API supports a call with a max of 25 IDs at a time
         maxNumIDs = 25
         if numComponentVersionIds > maxNumIDs:
             gatheredNotices = []
+            callCount=0
 
             for index in range(0, numComponentVersionIds, maxNumIDs):
+                
                 componentVersionsIds = ", ".join(componentVersionsIDList[index:index+maxNumIDs])
                 currentNoticesSet = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServicesURL, dataServicesAuthToken, componentVersionsIds)
                 # Were there any notices pulled back at all?
                 if currentNoticesSet:
-                    gatheredNotices += currentNoticesSet
+                    gatheredNotices += currentNoticesSet              
 
+                # Do we need to sleep a bit to ensure we don't hit the call limit
+                callCount += 1
+                if callCount%maxCallsPerMinute == 0:
+                    logger.info("CallCount: %s - Sleeping for 45 seconds" %callCount)
+                    time.sleep(45)
         else:
             componentVersionsIds = ", ".join(componentVersionsIDList)
             gatheredNotices = CodeInsight_RESTAPIs.data_access.license.license_texts.get_license_text_by_componentVersionId(dataServicesURL, dataServicesAuthToken, componentVersionsIds)
