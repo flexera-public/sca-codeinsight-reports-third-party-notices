@@ -1,0 +1,36 @@
+{
+    "reportName" : "Third Party Notices Report",
+    "enableProjectPickerValue" : "false",
+    "reportOptions" : {
+        "option1" : 
+        {
+            "name" : "includeChildProjects",
+            "label" : "Include child project data? (True/False)",
+            "description" : "Should the report include data from child projects? <b>(True/False)</b>",
+            "type" : "string",
+            "defaultValue" : "True",
+            "required" : "true",
+            "order" : "1"
+        },
+        "option2" : 
+        {
+            "name" : "includeComponentVersions",
+            "label" : "Include versions numbers in report? (True/False)",
+            "description" : "Should the report include component version numbers? <b>(True/False)</b>",
+            "type" : "string",
+            "defaultValue" : "True",
+            "required" : "true",
+            "order" : "2"
+        } ,
+        "option3" : 
+        {
+            "name" : "overrideExistingNoticesText",
+            "label" : "Override any exiting 'Notices Text? (True/False)",
+            "description" : "If there is already existing notices data should it be replaced with what was gathered? <b>(True/False)</b>",
+            "type" : "string",
+            "defaultValue" : "False",
+            "required" : "true",
+            "order" : "3"
+        }
+    }
+}
