@@ -21,16 +21,6 @@
             "defaultValue" : "True",
             "required" : "true",
             "order" : "2"
-        } ,
-        "option3" : 
-        {
-            "name" : "overrideExistingNoticesText",
-            "label" : "Override any exiting 'Notices Text? (True/False)",
-            "description" : "If there is already existing notices data should it be replaced with what was gathered? <b>(True/False)</b>",
-            "type" : "string",
-            "defaultValue" : "False",
-            "required" : "true",
-            "order" : "3"
         }
     }
 }
