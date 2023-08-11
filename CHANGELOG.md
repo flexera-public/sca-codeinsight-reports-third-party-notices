@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2023-08-10
+### Removed
+- Removed logic for updating the notices due to product support
+### Changed
+- Update requirements for 3.6.8 common env
+
 ## [1.3.0] - 2023-03-21
 ### Changed
 - Common registration script with registration_config.json file
