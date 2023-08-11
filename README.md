@@ -1,6 +1,6 @@
 # sca-codeinsight-reports-third-party-notices
 
-The `sca-codeinsight-reports-third-party-notices` repository is a report for Revenera's Code Insight product. This report allows a user to generate a Third Party Notices report to satisfy the attribution requirement of open source licenses. This report will automatically include licenses with attribution data where available.  The Notice Text field within the inventory item will also be updated with the attributed license text when possible based on report options.  When multiple license are found all variants will be included and manual inspection and modification may be required.
+The `sca-codeinsight-reports-third-party-notices` repository is a report for Revenera's Code Insight product. This report allows a user to generate a Third Party Notices report to satisfy the attribution requirement of open source licenses. This report will automatically include licenses with attribution data where available.
 
 This report will take into account any child projects (recursively).
 
@@ -18,6 +18,7 @@ This repository utilizes the following via CDN for the creation of the report ar
 |Repository Tag | Minimum Code Insight Release |
 |--|--|
 |1.0.x |2022R1 |
+|2.0.x |2023R2 |
 
 **Repository Cloning**
 
@@ -43,11 +44,6 @@ The required python modules can be installed with the use of the [requirements.t
 
 	pip install -r requirements.txt
 
-**Data Services Requirement**
-
-The execution of this report will require external network access in order to obtain the specific notice information for each item within the project invenetory.  The specific URLs required in addition to the default URLs for standard Code Insight usage are:
-- https://login.flexera.com 
-- https://sca-api.revenera.com 
 
 ## Configuration and Report Registration
  
@@ -93,7 +89,6 @@ The following report options can be set once the report generation has been init
 
 - Including child projects (True/False) - Determine if child project data will be included or not.
 - Include version numbers in artifacts (True/False) - Determine if the version number for a component will be added to any report aritfacts.
-- Replace Existing Notices Text Field Value (True/False) - Replace existing "Notices Text" field with gathered notices if already populated
 
 The generated reports will utilize the following Project Custom Fields if available
 - Application Name
