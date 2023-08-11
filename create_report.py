@@ -188,7 +188,6 @@ def verifyOptions(reportOptions):
     '''
     Expected Options for report:
         includeChildProjects - True/False
-        overrideExistingNoticesText - True/False
     '''
     reportOptions["errorMsg"] = []
     trueOptions = ["true", "t", "yes", "y"]
@@ -196,8 +195,6 @@ def verifyOptions(reportOptions):
 
     includeChildProjects = reportOptions["includeChildProjects"]
     includeComponentVersions = reportOptions["includeComponentVersions"]
-    overrideExistingNoticesText = reportOptions["overrideExistingNoticesText"]
-
 
     if includeChildProjects.lower() in trueOptions:
         reportOptions["includeChildProjects"] = True
@@ -212,15 +209,6 @@ def verifyOptions(reportOptions):
         reportOptions["includeComponentVersions"] = False
     else:
         reportOptions["errorMsg"].append("Invalid option for including component versions: <b>%s</b>.  Valid options are <b>True/False</b>" %includeComponentVersions)
-
-
-    if overrideExistingNoticesText.lower() in trueOptions:
-        reportOptions["overrideExistingNoticesText"] = True
-    elif overrideExistingNoticesText.lower() in falseOptions:
-        reportOptions["overrideExistingNoticesText"] = False
-    else:
-        reportOptions["errorMsg"].append("Invalid option for updating inventory notices text even if data alread exists: <b>%s</b>.  Valid options are <b>True/False</b>" %overrideExistingNoticesText)
-
 
     if not reportOptions["errorMsg"]:
         reportOptions.pop('errorMsg', None)
