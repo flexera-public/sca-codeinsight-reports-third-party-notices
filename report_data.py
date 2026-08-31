@@ -92,7 +92,7 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
             logger.debug("        Processing license details for '%s - %s  (%s)'" %(componentName, componentVersionName, inventoryID))
             
             componentVersionId = inventoryItem["componentVersionId"]
-            selectedLicenseSPDXIdentifier = inventoryItem["selectedLicenseSPDXIdentifier"]
+            selectedLicenseSPDXIdentifier = get_license_display_name(inventoryItem)
             selectedLicenseId = str(inventoryItem["selectedLicenseId"])
             url = inventoryItem["url"]  # TODO Which URL should be used
             componentUrl = inventoryItem["componentUrl"]
@@ -174,6 +174,20 @@ def gather_data_for_report(baseURL, projectID, authToken, reportName, reportOpti
 
     return reportData
 
+
+
+#----------------------------------------------#
+def get_license_display_name(inventoryItem):
+    # For expression-based licenses the selected* fields are all "N/A".
+    # The actual expression lives at licenseExpressionDetails.licenseExpression.
+    licenseExpressionDetails = inventoryItem.get("licenseExpressionDetails")
+    if licenseExpressionDetails:
+        licenseExpression = licenseExpressionDetails.get("licenseExpression")
+        if licenseExpression not in [None, "", "N/A"]:
+            return licenseExpression
+
+    # Single-license items carry the SPDX identifier at the top level.
+    return inventoryItem["selectedLicenseSPDXIdentifier"]
 
 
 #----------------------------------------------#
